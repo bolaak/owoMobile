@@ -555,5 +555,119 @@ async exchangeBalance(@Body() exchangeData: { typeOperation: string; direction: 
     throw new Error(`Erreur lors de l'échange de soldes : ${error.message}`);
   }
 }
+
+   //endpoint permettant à un Client de payer un Marchand.
+   @Post('payment')
+   @UseGuards(ClientGuard)
+   async payment(@Body() approvisionnementData: { client_numero_compte: string; marchand_numero_compte: string; montant: number; motif: string; pin: string }) {
+     const { client_numero_compte, marchand_numero_compte, montant, motif, pin } = approvisionnementData;
+   
+     try {
+       console.log('Données reçues :', approvisionnementData);
+
+    // Vérifier que les comptes à débiter et à créditer sont différents
+    await this.usersService.validateDifferentAccounts(marchand_numero_compte, client_numero_compte);
+
+       // Récupérer les enregistrements du Marchand et du Client
+       console.log('Récupération des données du Client...');
+       const clientRecord = await this.usersService.getUserByNumeroCompte(client_numero_compte);
+       console.log('Client trouvé :', clientRecord);
+   
+       console.log('Récupération des données du Marchand_Business...');
+       const marchandRecord = await this.usersService.getUserByNumeroCompte(marchand_numero_compte);
+       console.log('Marchand_Business trouvé :', marchandRecord);
+
+      // Vérifier que les deux comptes sont du même pays
+      //await this.usersService.validateSameCountry(marchand_numero_compte, client_numero_compte);
+ 
+       // Vérifier que le Client est de type "CLIENT"
+       console.log('Vérification du type utilisateur (Client)...');
+       await this.usersService.validateUserType(clientRecord.id, 'CLIENT');
+   
+       // Vérifier que le Marchand est de type "MARCHAND"
+       console.log('Vérification du type utilisateur (Marchand_Business)...');
+       await this.usersService.validateUserType(marchandRecord.id, 'BUSINESS');
+ 
+       // Vérifier que le pays du Client est "Activated"
+       console.log('Vérification du statut du Client...');
+       await this.usersService.checkCountryStatusForUser(clientRecord.id);
+ 
+       // Vérifier que le statut du Client est "Activated"
+       console.log('Vérification du statut du Client...');
+       await this.usersService.checkUserStatus(client_numero_compte);
+ 
+       // Vérifier que le pays du Marchand_Business est "Activated"
+       console.log('Vérification du statut du Marchand_Business...');
+       await this.usersService.checkCountryStatusForMarchand(marchandRecord.id);
+ 
+       // Vérifier que le statut du Marchand est "Activated"
+       console.log('Vérification du statut du Marchand...');
+       await this.usersService.checkUserStatusMarchand(marchand_numero_compte);
+ 
+       // Vérifier que le solde du Client est suffisant
+       console.log('Vérification du solde du Client...');
+       await this.usersService.validateSolde(clientRecord.id, montant);
+   
+       // Vérifier le code PIN du Client
+       console.log('Vérification du code PIN du Client...');
+       await this.usersService.validatePIN(client_numero_compte, pin);
+
+     // Générer un code OTP pour valider l'opération
+     console.log('Génération du code OTP...');
+     await this.usersService.generateOTP(clientRecord.id, marchandRecord.id, montant);
+
+       return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.' };
+     } catch (error) {
+       console.error('Erreur interceptée :', error.message);
+       throw new Error(`Erreur lors du paiement : ${error.message}`);
+     }
+ }
+  // enpoint pour valider l'opération de dépot
+  @Post('valider-payment')
+  @UseGuards(ClientGuard)
+  async validerPayment(@Body() validationData: { client_numero_compte: string; marchand_numero_compte: string; montant: number; motif: string; otpCode: string}) {
+    const { client_numero_compte, marchand_numero_compte, montant, motif, otpCode} = validationData;
+
+  try {
+    console.log('Données reçues pour la validation :', validationData);
+
+    // Récupérer l'utilisateur Client
+    console.log('Récupération des données du Client...');
+    const clientRecord = await this.usersService.getUserByNumeroCompte(client_numero_compte);
+    console.log('Client trouvé :', clientRecord);
+
+    // Vérifier que le statut du Client est "Activated"
+    console.log('Vérification du statut du Client...');
+    await this.usersService.checkUserStatus(client_numero_compte);
+
+    // Récupérer l'utilisateur Marchand_Business
+    console.log('Récupération des données du Marchand_Business...');
+    const marchandRecord = await this.usersService.getUserByNumeroCompte(marchand_numero_compte);
+    console.log('Marchand_Business trouvé :', marchandRecord);
+
+    // Vérifier que le statut du Marchand est "Activated"
+    console.log('Vérification du statut du Marchand_Business...');
+    await this.usersService.checkUserStatus(marchand_numero_compte);
+
+    // Valider le code OTP
+    console.log('Validation du code OTP...');
+    await this.usersService.validateOTP(clientRecord.id, marchandRecord.id, otpCode, montant);
+
+      console.log('Exécution de l\'opération...');
+      const resultat = await this.usersService.executerOperationPayment(
+        marchand_numero_compte,
+        client_numero_compte,
+        montant,
+        motif
+      );
+
+    //return { message: 'Validation réussie. L\'opération peut être exécutée.' };
+    return { message: 'Opération exécutée avec succès.', ...resultat };
+
+  } catch (error) {
+    console.error('Erreur lors de la validation ou de l\'exécution de l\'opération :', error.message);
+    throw error; //(`Erreur lors de la validation ou de l'exécution de l'opération : ${error.message}`);
+  }
+}
 }
  

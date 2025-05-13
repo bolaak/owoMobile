@@ -38,7 +38,7 @@ export class MailService {
 
   async sendMail(to: string, subject: string, text: string, html?: string) {
     const mailOptions = {
-      from: `"Mobile Money" <${Config.SMTP_USER}>`,
+      from: `"OwoMobile" <${Config.SMTP_USER}>`,
       to,
       subject,
       text,
@@ -56,7 +56,7 @@ export class MailService {
 
   async sendTransactionEmail(to: string, subject: string, body: string): Promise<void> {
     const mailOptions = {
-      from: `"Mobile Money" <${Config.SMTP_USER}>`,
+      from: `"OwoMobile" <${Config.SMTP_USER}>`,
       to,
       subject,
       text: body,
@@ -78,7 +78,7 @@ export class MailService {
 
     const mailOptions = {
       //from: process.env.EMAIL_USER,
-      from: `"Mobile Money" <${Config.SMTP_USER}>`,
+      from: `"OwoMobile" <${Config.SMTP_USER}>`,
       to: email,
       subject: 'Code OTP pour la validation de l\'opération ',
       text: `Votre code OTP est : ${otpCode} pour l\'opération : ${operationId}. Ce code est valide pendant 5 minutes.`,

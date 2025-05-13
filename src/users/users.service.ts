@@ -1268,19 +1268,20 @@ async creditSolde(userId: string, montant: number) {
       console.log('Création de la transaction...');
       const deviseCode = marchandRecord.devise_code?.[0] || 'XOF'; // Récupérer la devise du pays
       const description = `Opération d'approvisionnement Marchand. Master(${master_numero_compte}) => Marchand(${marchand_numero_compte}) de ${montant} ${deviseCode}`;
-      await this.transactionsService.createTransactionAppro({
+      const transaction = await this.transactionsService.createTransactionAppro({
         type_operation: 'APPROVISIONNEMENT',
         montant,
-        //date_transaction: new Date().toISOString(),
         expediteur_id: masterRecord.id,
         destinataire_id: marchandRecord.id,
         description,
         motif,
         status: 'SUCCESS',
       });
+      // Récupérer l'ID de la transaction créée
+      const transactionId = transaction.id;
 
       console.log('Opération exécutée avec succès.');
-      return { nouveau_solde_master: newMasterSolde, nouveau_solde_marchand: newMarchandSolde };
+      return {transaction_id: transactionId, nouveau_solde_master: newMasterSolde, nouveau_solde_marchand: newMarchandSolde };
     } catch (error) {
       console.error('Erreur lors de l\'exécution de l\'opération :', error.message);
       throw error; //(`Erreur lors de l'exécution de l'opération : ${error.message}`);
@@ -1335,7 +1336,7 @@ async creditSolde(userId: string, montant: number) {
       console.log('Création de la transaction...');
       const deviseCode = clientRecord.devise_code?.[0] || 'XOF'; // Récupérer la devise du pays 
       const description = `Opération d'approvisionnement Client. Marchand(${marchand_numero_compte}) => Client(${client_numero_compte}) de ${montant} ${deviseCode}`;
-      await this.transactionsService.createTransactionAppro({
+    const transaction = await this.transactionsService.createTransactionAppro({
         type_operation: 'DEPOT',
         montant,
         //date_transaction: new Date().toISOString(),
@@ -1348,12 +1349,14 @@ async creditSolde(userId: string, montant: number) {
 
     // Partager les commissions
     await this.shareCommissionsDepot(type_operation, clientRecord.pays_id, montant, marchand_numero_compte, compteSysteme);
+    // Récupérer l'ID de la transaction créée
+    const transactionId = transaction.id;
     
       console.log('Opération exécutée avec succès.');
-      return { nouveau_solde_marchand: newMarchandSolde, nouveau_solde_client: newClientSolde };
+      return {transaction_id: transactionId, nouveau_solde_marchand: newMarchandSolde, nouveau_solde_client: newClientSolde };
     } catch (error) {
       console.error('Erreur lors de l\'exécution de l\'opération :', error.message);
-      throw new Error(`Erreur lors de l'exécution de l'opération : ${error.message}`);
+      throw error; //(`Erreur lors de l'exécution de l'opération : ${error.message}`);
     }
   }
 
@@ -1415,7 +1418,7 @@ async creditSolde(userId: string, montant: number) {
     console.log('Création de la transaction...');
     const deviseCode = client1Record.devise_code?.[0] || 'XOF'; // Récupérer la devise du pays 
     const description = `Opération de transfert c-to-c . Client(${client1_numero_compte}) => Client(${client2_numero_compte}) de ${montant} ${deviseCode}. Frais = ${fraisTransfert} ${deviseCode}`;
-    await this.transactionsService.createTransactionAppro({
+    const transaction = await this.transactionsService.createTransactionAppro({
       type_operation: 'TRANSFERT',
       montant,
       //date_transaction: new Date().toISOString(),
@@ -1426,9 +1429,11 @@ async creditSolde(userId: string, montant: number) {
       frais : fraisTransfert,
       status: 'SUCCESS',
     });
+    // Récupérer l'ID de la transaction créée
+    const transactionId = transaction.id;
 
     console.log('Opération exécutée avec succès.');
-    return { nouveau_solde_client1: newClient1Solde, nouveau_solde_client2: newClient2Solde };
+    return {transaction_id: transactionId, nouveau_solde_client1: newClient1Solde, nouveau_solde_client2: newClient2Solde };
   } catch (error) {
     console.error('Erreur lors de l\'exécution de l\'opération :', error.message);
     throw error; //(`Erreur lors de l'exécution de l'opération : ${error.message}`);
@@ -1493,7 +1498,7 @@ async creditSolde(userId: string, montant: number) {
     console.log('Création de la transaction...');
     const deviseCode = clientRecord.devise_code?.[0] || 'XOF'; // Récupérer la devise du pays 
     const description = `Opération de retrait client . Client(${client_numero_compte}) => Marchand(${marchand_numero_compte}) de ${montant} ${deviseCode}. Frais = ${fraisTransfert} ${deviseCode} `;
-    await this.transactionsService.createTransactionAppro({
+    const transaction = await this.transactionsService.createTransactionAppro({
       type_operation: 'RETRAIT',
       montant,
       //date_transaction: new Date().toISOString(),
@@ -1507,9 +1512,11 @@ async creditSolde(userId: string, montant: number) {
 
     // Partager les commissions
     await this.shareCommissions(type_operation, clientRecord.pays_id, fraisTransfert, marchand_numero_compte, compteSysteme);
+    // Récupérer l'ID de la transaction créée
+    const transactionId = transaction.id;
 
     console.log('Opération exécutée avec succès.');
-    return { nouveau_solde_client: newClientSolde};
+    return {transaction_id: transactionId, nouveau_solde_client: newClientSolde};
   } catch (error) {
     console.error('Erreur lors de l\'exécution de l\'opération :', error.message);
     throw error; //(`Erreur lors de l'exécution de l'opération : ${error.message}`);
@@ -1566,7 +1573,7 @@ async exchangeBalance(
         ? `Transfert de ${montant} du compte système ${typeOperation} vers le compte ADMIN`
         : `Transfert de ${montant} du compte ADMIN vers le compte système ${typeOperation}`;
 
-    await this.transactionsService.createTransaction({
+    const transaction = await this.transactionsService.createTransactionAppro({
       type_operation: 'EXCHANGE',
       montant,
       //date_transaction: new Date().toISOString(),
@@ -1575,8 +1582,10 @@ async exchangeBalance(
       description,
       status: 'SUCCESS',
     });
+    // Récupérer l'ID de la transaction créée
+    const transactionId = transaction.id;
 
-    console.log(`Échange de soldes effectué avec succès.`);
+    console.log(`Échange de soldes effectué avec succès. ID opération:${transactionId}`);
   } catch (error) {
     console.error(`Erreur lors de l'échange de soldes : ${error.message}`);
     throw error;
@@ -1631,7 +1640,8 @@ async exchangeBalance(
       console.log('Création de la transaction...');
       const deviseCode = clientRecord.devise_code?.[0] || 'XOF'; // Récupérer la devise du pays 
       const description = `Opération de paiement Marchand. Client(${client_numero_compte}) => Marchand_Business(${marchand_numero_compte}) de ${montant} ${deviseCode}`;
-      await this.transactionsService.createTransactionAppro({
+      //await this.transactionsService.createTransactionAppro({
+       const transaction = await this.transactionsService.createTransactionAppro({
         type_operation: 'PAIEMENT',
         montant,
         //date_transaction: new Date().toISOString(),
@@ -1644,9 +1654,12 @@ async exchangeBalance(
 
     // Partager les commissions
     //await this.shareCommissionsDepot(type_operation, clientRecord.pays_id, montant, marchand_numero_compte, compteSysteme);
+
+    // Récupérer l'ID de la transaction créée
+    const transactionId = transaction.id;
     
       console.log('Opération exécutée avec succès.');
-      return { nouveau_solde_marchand: newMarchandSolde, nouveau_solde_client: newClientSolde };
+      return { transaction_id: transactionId, nouveau_solde_marchand: newMarchandSolde, nouveau_solde_client: newClientSolde };
     } catch (error) {
       console.error('Erreur lors de l\'exécution de l\'opération :', error.message);
       throw error; //(`Erreur lors de l'exécution de l'opération : ${error.message}`);

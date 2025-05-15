@@ -1196,7 +1196,7 @@ async creditSolde(userId: string, montant: number) {
   }
 
   // Méthode pour générer un code OTP
-  async generateOTP(userId: string, destinataireId: string, montant: number): Promise<string> {
+  async generateOTP(userId: string, destinataireId: string, montant: number): Promise<{ otpCode: string; operationId: string }> {
     //const otpCode = crypto.randomBytes(3).toString('hex').toUpperCase(); // Exemple : "A1B2C3"
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     const operationId = Math.floor(1000000000 + Math.random() * 9000000000).toString();
@@ -1223,7 +1223,8 @@ async creditSolde(userId: string, montant: number) {
     await this.mailService.sendOTPEmail(email, otpCode, operationId);
 
     console.log(`Code OTP généré pour l'utilisateur ID : ${userId}, Opération ID : ${operationId}, Code : ${otpCode}`);
-    return otpCode;
+    return {otpCode, operationId};
+    //return otpCode;
   }  
 
   //méthode pour exécuter l'opération Approvisionnement une fois que le code OTP est validé.

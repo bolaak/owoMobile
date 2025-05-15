@@ -669,5 +669,65 @@ async exchangeBalance(@Body() exchangeData: { typeOperation: string; direction: 
     throw error; //(`Erreur lors de la validation ou de l'exécution de l'opération : ${error.message}`);
   }
 }
+/*@Post('generateOtp')
+async generateOTP(
+  @Body('client_numero_compte') client_numero_compte: string,
+  @Body('marchand_numero_compte') marchand_numero_compte: string,
+  @Body('montant') montant: number,
+) {
+      // Vérifier que les comptes à débiter et à créditer sont différents
+      await this.usersService.validateDifferentAccounts(marchand_numero_compte, client_numero_compte);
+
+      // Récupérer les enregistrements du Marchand et du Client
+      console.log('Récupération des données du Client...');
+      const clientRecord = await this.usersService.getUserByNumeroCompte(client_numero_compte);
+      console.log('Client trouvé :', clientRecord);
+  
+      console.log('Récupération des données du Marchand_Business...');
+      const marchandRecord = await this.usersService.getUserByNumeroCompte(marchand_numero_compte);
+      console.log('Marchand_Business trouvé :', marchandRecord);
+
+     // Vérifier que les deux comptes sont du même pays
+     //await this.usersService.validateSameCountry(marchand_numero_compte, client_numero_compte);
+
+      // Vérifier que le Client est de type "CLIENT"
+      console.log('Vérification du type utilisateur (Client)...');
+      await this.usersService.validateUserType(clientRecord.id, 'CLIENT');
+  
+      // Vérifier que le Marchand est de type "MARCHAND"
+      console.log('Vérification du type utilisateur (Marchand_Business)...');
+      await this.usersService.validateUserType(marchandRecord.id, 'BUSINESS');
+
+      // Vérifier que le pays du Client est "Activated"
+      console.log('Vérification du statut du Client...');
+      await this.usersService.checkCountryStatusForUser(clientRecord.id);
+
+      // Vérifier que le statut du Client est "Activated"
+      console.log('Vérification du statut du Client...');
+      await this.usersService.checkUserStatus(client_numero_compte);
+
+      // Vérifier que le pays du Marchand_Business est "Activated"
+      console.log('Vérification du statut du Marchand_Business...');
+      await this.usersService.checkCountryStatusForMarchand(marchandRecord.id);
+
+      // Vérifier que le statut du Marchand est "Activated"
+      console.log('Vérification du statut du Marchand...');
+      await this.usersService.checkUserStatusMarchand(marchand_numero_compte);
+
+  const { otpCode, operationId } = await this.usersService.generateOTP(
+    clientRecord.id,
+    marchandRecord.id,
+    montant,
+  );
+
+  return {
+    success: true,
+    message: 'OTP généré avec succès',
+    fields: {
+      otpCode,
+      operationId,
+    },
+  };
+}*/
 }
  

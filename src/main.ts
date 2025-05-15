@@ -10,6 +10,12 @@ dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableCors({
+    origin: '*', // Autorise toutes les origines (à ajuster en production)
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  });
 
   // Appliquez le filtre d'exception globalement
   app.useGlobalFilters(new AllExceptionsFilter());

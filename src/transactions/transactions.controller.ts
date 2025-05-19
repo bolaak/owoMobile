@@ -614,9 +614,11 @@ async exchangeBalance(@Body() exchangeData: { typeOperation: string; direction: 
 
      // Générer un code OTP pour valider l'opération
      console.log('Génération du code OTP...');
-     await this.usersService.generateOTP(clientRecord.id, marchandRecord.id, montant);
+     //await this.usersService.generateOTP(clientRecord.id, marchandRecord.id, montant);
+      return this.usersService.generateOTP(clientRecord.id, marchandRecord.id, montant);
 
-       return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.' };
+
+       //return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.' };
      } catch (error) {
        console.error('Erreur interceptée :', error.message);
        throw new Error(`Erreur lors du paiement : ${error.message}`);
@@ -669,65 +671,24 @@ async exchangeBalance(@Body() exchangeData: { typeOperation: string; direction: 
     throw error; //(`Erreur lors de la validation ou de l'exécution de l'opération : ${error.message}`);
   }
 }
-/*@Post('generateOtp')
-async generateOTP(
-  @Body('client_numero_compte') client_numero_compte: string,
-  @Body('marchand_numero_compte') marchand_numero_compte: string,
-  @Body('montant') montant: number,
-) {
-      // Vérifier que les comptes à débiter et à créditer sont différents
-      await this.usersService.validateDifferentAccounts(marchand_numero_compte, client_numero_compte);
 
-      // Récupérer les enregistrements du Marchand et du Client
-      console.log('Récupération des données du Client...');
-      const clientRecord = await this.usersService.getUserByNumeroCompte(client_numero_compte);
-      console.log('Client trouvé :', clientRecord);
-  
-      console.log('Récupération des données du Marchand_Business...');
-      const marchandRecord = await this.usersService.getUserByNumeroCompte(marchand_numero_compte);
-      console.log('Marchand_Business trouvé :', marchandRecord);
+// src/approvisionnement/approvisionnement.controller.ts
+@Post('resend-otp')
+//@UseGuards(AuthGuard)
+async regenerateOTP(@Body() otpData: { operationId: string }) {
+  const { operationId } = otpData;
 
-     // Vérifier que les deux comptes sont du même pays
-     //await this.usersService.validateSameCountry(marchand_numero_compte, client_numero_compte);
+  try {
+    console.log('Demande de régénération du code OTP reçue...');
 
-      // Vérifier que le Client est de type "CLIENT"
-      console.log('Vérification du type utilisateur (Client)...');
-      await this.usersService.validateUserType(clientRecord.id, 'CLIENT');
-  
-      // Vérifier que le Marchand est de type "MARCHAND"
-      console.log('Vérification du type utilisateur (Marchand_Business)...');
-      await this.usersService.validateUserType(marchandRecord.id, 'BUSINESS');
+    // Appeler le service pour regénérer le code OTP
+    const result = await this.usersService.regenerateOTP(operationId);
 
-      // Vérifier que le pays du Client est "Activated"
-      console.log('Vérification du statut du Client...');
-      await this.usersService.checkCountryStatusForUser(clientRecord.id);
-
-      // Vérifier que le statut du Client est "Activated"
-      console.log('Vérification du statut du Client...');
-      await this.usersService.checkUserStatus(client_numero_compte);
-
-      // Vérifier que le pays du Marchand_Business est "Activated"
-      console.log('Vérification du statut du Marchand_Business...');
-      await this.usersService.checkCountryStatusForMarchand(marchandRecord.id);
-
-      // Vérifier que le statut du Marchand est "Activated"
-      console.log('Vérification du statut du Marchand...');
-      await this.usersService.checkUserStatusMarchand(marchand_numero_compte);
-
-  const { otpCode, operationId } = await this.usersService.generateOTP(
-    clientRecord.id,
-    marchandRecord.id,
-    montant,
-  );
-
-  return {
-    success: true,
-    message: 'OTP généré avec succès',
-    fields: {
-      otpCode,
-      operationId,
-    },
-  };
-}*/
+    return { message: 'Nouveau code OTP généré avec succès.', ...result };
+  } catch (error) {
+    console.error('Erreur lors de la régénération du code OTP :', error.message);
+    throw new Error(`Erreur lors de la régénération du code OTP : ${error.message}`);
+  }
+}
 }
  

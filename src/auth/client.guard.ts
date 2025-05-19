@@ -17,9 +17,7 @@ export class ClientGuard implements CanActivate {
     try {
       const decoded = jwt.verify(token, Config.JWT_SECRET);
       console.log('Utilisateur décodé :', decoded); // Log pour vérifier les informations décodées
-
       request.user = decoded;
-
       if (decoded.type_utilisateur !== 'CLIENT') {
         console.log('Rôle de l\'utilisateur :', decoded.type_utilisateur); // Log pour vérifier le rôle
         throw new Error('Accès non autorisé.');

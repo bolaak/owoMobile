@@ -15,6 +15,9 @@ export class AuthGuard implements CanActivate {
     }
 
     try {
+      if (!Config.JWT_SECRET) {
+        throw new Error('JWT_SECRET is not defined.');
+      }
       const decoded = jwt.verify(token, Config.JWT_SECRET);
       console.log('Token décodé :', decoded); // Log pour vérifier le contenu du token
       request.user = decoded; // Attache l'utilisateur décodé à la requête

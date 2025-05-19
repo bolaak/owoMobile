@@ -1176,7 +1176,7 @@ async creditSolde(userId: string, montant: number) {
   
     if (otpRecords.length === 0) {
       //throw new Error('Code OTP invalide, déjà utilisé ou ne correspond pas à cette opération ou soit le montant est erroné ou le compte à débiter et/ou à créditer est erroné.');
-      throw new Error('Code OTP invalide, déjà utilisé ou ne correspond pas à cette opération.');
+      throw new Error('Code OTP invalide ou déjà utilisé.');
 
     }
   
@@ -1196,12 +1196,12 @@ async creditSolde(userId: string, montant: number) {
   }
 
   // Méthode pour générer un code OTP
-  async generateOTP(userId: string, destinataireId: string, montant: number): Promise<{ otpCode: string; operationId: string }> {
+  async generateOTP(userId: string, destinataireId: string, montant: number): Promise<{ operationId: string, message: string }> {
     //const otpCode = crypto.randomBytes(3).toString('hex').toUpperCase(); // Exemple : "A1B2C3"
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     const operationId = Math.floor(1000000000 + Math.random() * 9000000000).toString();
 
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+    const expiresAt = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes
 
     // Stocker le code OTP dans la table OTP
     await this.base('OTP').create([
@@ -1223,8 +1223,83 @@ async creditSolde(userId: string, montant: number) {
     await this.mailService.sendOTPEmail(email, otpCode, operationId);
 
     console.log(`Code OTP généré pour l'utilisateur ID : ${userId}, Opération ID : ${operationId}, Code : ${otpCode}`);
-    return {otpCode, operationId};
+    return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.', operationId};
     //return otpCode;
+  }
+  // Méthode pour vérifier si le code OTP associé à une opération a expiré
+  async checkOTPExpiration(operationId: string): Promise<boolean> {
+    try {
+      console.log(`Vérification de l'expiration du code OTP pour l'opération ID : ${operationId}`);
+
+      const otpRecords = await this.base('OTP')
+        .select({ filterByFormula: `{operation_id} = '${operationId}'` })
+        .firstPage();
+
+      if (otpRecords.length === 0) {
+        throw new Error("Aucun enregistrement OTP trouvé pour cet ID d'opération.");
+      }
+
+      const otpRecord = otpRecords[0];
+      const codeExpired = otpRecord.fields.code_expired;
+      const codeStatus = otpRecord.fields.used;
+
+      if (codeStatus == 'true') {
+        throw new Error("Le code OTP précédent a été déjà utilisé.");
+      }
+
+      if (codeExpired !== 'Yes') {
+        throw new Error("Le code OTP précédent n'a pas encore expiré.");
+      }
+
+      console.log(`Le code OTP précédent a expiré pour l'opération ID : ${operationId}`);
+      return true;
+    } catch (error) {
+      console.error(`Erreur lors de la vérification de l'expiration du code OTP : ${error.message}`);
+      throw error;
+    }
+  }
+  // Méthode pour générer un nouveau code OTP et mettre à jour l'enregistrement existant dans la table OTP
+  async regenerateOTP(operationId: string): Promise<{ operationId: string }> {
+    try {
+      console.log(`Regénération du code OTP pour l'opération ID : ${operationId}`);
+
+      // Vérifier que le code OTP précédent a expiré
+      await this.checkOTPExpiration(operationId);
+
+      // Générer un nouveau code OTP
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 2 * 60 * 1000); // 5 minutes
+
+      // Récupérer l'enregistrement OTP existant
+      const otpRecords = await this.base('OTP')
+        .select({ filterByFormula: `{operation_id} = '${operationId}'` })
+        .firstPage();
+
+      if (otpRecords.length === 0) {
+        throw new Error("Aucun enregistrement OTP trouvé pour cet ID d'opération.");
+      }
+
+      const otpRecord = otpRecords[0];
+
+      // Mettre à jour l'enregistrement OTP avec le nouveau code et les nouvelles informations
+      await this.base('OTP').update(otpRecord.id, {
+        code: otpCode,
+        expires_at: expiresAt.toISOString(),
+        //code_expired: 'No', // Réinitialiser l'expiration
+      });
+
+      // Envoyer le nouveau code OTP par e-mail
+      const userId = otpRecord.fields.user_id;
+      const userRecord = await this.getUserById(userId);
+      const email = userRecord.email;
+      await this.mailService.sendOTPEmail(email, otpCode, operationId);
+
+      console.log(`Nouveau code OTP généré pour l'opération ID : ${operationId}, Code : ${otpCode}`);
+      return {operationId };
+    } catch (error) {
+      console.error(`Erreur lors de la régénération du code OTP : ${error.message}`);
+      throw error;
+    }
   }  
 
   //méthode pour exécuter l'opération Approvisionnement une fois que le code OTP est validé.
@@ -1666,4 +1741,5 @@ async exchangeBalance(
       throw error; //(`Erreur lors de l'exécution de l'opération : ${error.message}`);
     }
   }
+
 }

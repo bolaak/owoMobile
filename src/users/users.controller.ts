@@ -1,5 +1,5 @@
 // src/users/users.controller.ts
-import { Controller, Post, Body,Put, Get, Delete, Param, UsePipes, ValidationPipe, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body,Put, Get, Delete, Param, UsePipes, ValidationPipe, UseGuards,Request, UseInterceptors, UploadedFiles, UploadedFile } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AdminGuard } from '../auth/admin.guard';
@@ -7,6 +7,9 @@ import { AuthGuard } from '../auth/auth.guard';
 import { RecoverPasswordDto } from './dto/recover-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { User } from '../decorators/user.decorator';
+import { FileInterceptor } from '@nestjs/platform-express'; // Import correct
+import { diskStorage } from 'multer';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 
 @Controller('users')
@@ -41,8 +44,20 @@ export class UsersController {
 
   @Put(':id')
   @UseGuards(AuthGuard)
-  async updateUser(@Param('id') id: string, @Body() updatedData: any) {
-    return this.usersService.updateUser(id, updatedData);
+    @UseInterceptors(
+    FilesInterceptor('photo_url', 5, {
+      storage: diskStorage({
+        destination: './uploads', // Stocker les fichiers temporairement
+        filename: (req, file, callback) => {
+          callback(null, `${Date.now()}-${file.originalname}`);
+        },
+      }),
+    })
+  )
+  async updateUser(@Param('id') id: string,
+  @UploadedFiles() files: Express.Multer.File[], 
+   @Body() updatedData: any) {
+    return this.usersService.updateUser(id, updatedData, files);
   }
 
   @Delete(':id')

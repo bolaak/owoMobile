@@ -10,6 +10,11 @@ import { AuditLogService } from '../audit-log/audit-log.service';
 import {GrilleTarifaireService } from '../grille-tarifaire/grille-tarifaire.service';
 import {CompteSystemeService } from '../compte-systeme/compte-systeme.service';
 import {CommissionnementService } from '../commissionnement/commissionnement.service';
+import { GCSService } from '../google_cloud/gcs.service';
+import { unlinkSync } from 'fs';
+import { Storage } from '@google-cloud/storage';
+import { Multer } from 'multer';
+
 
 
 
@@ -23,7 +28,9 @@ export class UsersService {
     private readonly grilleTarifaireService: GrilleTarifaireService,
     private readonly compteSystemeService: CompteSystemeService, 
     private readonly commissionsService: CommissionnementService, 
-    private readonly transactionsService: TransactionsService,) {
+    private readonly transactionsService: TransactionsService,
+    private readonly gcsService: GCSService) {
+
     // Configurez Airtable directement ici
     const airtable = new Airtable({ apiKey: Config.AIRTABLE_API_KEY });
     if (!Config.AIRTABLE_BASE_ID) {
@@ -337,33 +344,6 @@ async validateSolde(userId: string, montant: number): Promise<void> {
   }
 }
 
-/*async validateSoldeOperation(userId: string, montant: number, frais: number): Promise<void> {
-  try {
-    console.log(`Validation du solde pour l'utilisateur ID : ${userId}, Montant requis : ${montant}`);
-    const userRecords = await this.base('Utilisateurs')
-      .select({ filterByFormula: `{id} = '${userId}'` })
-      .firstPage();
-
-    if (userRecords.length === 0) {
-      console.log(`Aucun utilisateur trouvé avec l'ID : ${userId}`);
-      throw new Error('Utilisateur introuvable.');
-    }
-
-    const solde = userRecords[0].fields.solde + frais || 0;
-    console.log(`Solde actuel de l'utilisateur ID ${userId} : ${solde}`);
-
-    if (solde < montant) {
-      console.log(`Solde insuffisant pour l'utilisateur ID : ${userId}`);
-      throw new Error('Solde insuffisant pour effectuer cette opération.');
-    }
-
-    console.log(`Validation du solde réussie pour l'utilisateur ID : ${userId}`);
-  } catch (error) {
-    console.error(`Erreur lors de la validation du solde : ${error.message}`);
-    throw error;
-  }
-}*/
-
 // Méthode pour ettre à jour le solde de l'utilisateur
 async updateSolde(userId: string, newSolde: number): Promise<void> {
   try {
@@ -404,7 +384,7 @@ async getAllUsers() {
   });
 }
 // méthode pour modifier les détails d'un utilisateur
-async updateUser(id: string, updatedData: any) {
+async updateUser(id: string, updatedData: any, files?: Express.Multer.File[]): Promise<any> {
   try {
     // Filtrer les données pour inclure uniquement les champs autorisés
     /*const filteredData = {};
@@ -418,10 +398,44 @@ async updateUser(id: string, updatedData: any) {
   await this.checkCountryStatus(updatedData.pays_id);
   updatedData.pays_id = [updatedData.pays_id];
   }
-  
-  //await this.checkUserStatus(updatedData.numero_compte);
-  
-  await this.base('Utilisateurs').update(id, updatedData);
+     // Gestion des images locales
+    if (files && files.length > 0) {
+      // Uploader chaque fichier vers GCS
+      const uploadedImages = await Promise.all(
+        files.map(async (file) => {
+          try {
+            // Uploader l'image vers GCS
+            const publicUrl = await this.gcsService.uploadImage(file.path);
+
+            // Supprimer le fichier local après l'upload
+            unlinkSync(file.path); // Nettoyage du fichier temporaire
+
+            return publicUrl;
+          } catch (error) {
+            console.error('Erreur lors de l\'upload de l\'image :', error.message);
+            throw new Error('Impossible d\'uploader l\'image.');
+          }
+        })
+      );
+      // Remplacer le champ photo_url par les URLs des images uploadées
+      updatedData.photo_url = uploadedImages.map(url => ({ url }));
+    } else if (updatedData.photo_url) {
+      // Si photo_url est une chaîne (URL), convertissez-la en tableau d'objets
+      if (typeof updatedData.photo_url === 'string') {
+        updatedData.photo_url = [{ url: updatedData.photo_url }];
+      }
+      // Si photo_url est un tableau de chaînes, convertissez chaque élément
+      else if (Array.isArray(updatedData.photo_url)) {
+        updatedData.photo_url = updatedData.photo_url.map(url => ({ url }));
+      }
+    }
+      // Mettez à jour l'utilisateur dans Airtable
+      /*const response = await axios.patch(
+        `${this.getUrl()}/${id}`,
+        { fields: updatedData },
+        { headers: this.getHeaders() }
+      );*/  
+    await this.base('Utilisateurs').update(id, updatedData);
   
   return { message: 'Utilisateur mis à jour avec succès.' };
   } catch (error) {

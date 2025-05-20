@@ -6,13 +6,12 @@ import { TransactionsModule } from '../transactions/transactions.module';
 import { GrilleTarifaireModule } from '../grille-tarifaire/grille-tarifaire.module'; // Chemin correct vers GrilleTarifaireModule
 import { CompteSystemeModule } from '../compte-systeme/compte-systeme.module'; // Chemin correct vers CompteSystemeModule
 import { CommissionnementModule } from '../commissionnement/commissionnement.module'; // Chemin correct vers CommissionnementModule
-
-
+import { GCSService } from '../google_cloud/gcs.service'; // Importez le service GCS
 
 
 @Module({
   imports: [MailModule, forwardRef(() => TransactionsModule), forwardRef(() => GrilleTarifaireModule), forwardRef(() => CompteSystemeModule), forwardRef(() => CommissionnementModule),], // Ajoutez MailModule ici
-  providers: [UsersService], //TransactionsService 
+  providers: [UsersService, GCSService], //TransactionsService 
   controllers: [UsersController],
   exports: [UsersService], // Exporter le service
 

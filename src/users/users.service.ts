@@ -677,7 +677,7 @@ async changePassword(userId: string, oldPassword: string, newPassword: string): 
   try {
     await this.base('Utilisateurs').update(userId, { mot_de_passe: hashedNewPassword });
   } catch (error) {
-    throw new Error(`Erreur lors du changement de mot de passe : ${error.message}`);
+    throw error; //(`Erreur lors du changement de mot de passe : ${error.message}`);
   }
 }
 // Vérification du status d'un pays

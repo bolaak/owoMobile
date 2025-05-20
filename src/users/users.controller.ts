@@ -10,16 +10,16 @@ import { User } from '../decorators/user.decorator';
 import { FileInterceptor } from '@nestjs/platform-express'; // Import correct
 import { diskStorage } from 'multer';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { TransactionsService } from '../transactions/transactions.service'; // Importer le service TransactionsService
+
 
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+   private readonly usersService: UsersService,
+   private readonly transactionsService: TransactionsService,) {}
 
-  /*@Post('register')
-  async registerUser(@Body() userData: any) {
-    return this.usersService.createUser(userData);
-  }*/
     @Get()
     @UseGuards(AdminGuard) // Seul un administrateur peut accéder à cette route
     async getAllUsers() {
@@ -118,6 +118,7 @@ async changePassword( @User() user: any, @Body() body: ChangePasswordDto) {
   const { oldPassword, newPassword } = body;
 
   await this.usersService.changePassword(user.id, oldPassword, newPassword);
+  console.log('Utilisateur récupéré dans le contrôleur :', user); // Log pour vérifier l'utilisateur
   return { message: 'Le mot de passe a été changé avec succès.' };
 }
 
@@ -179,4 +180,49 @@ async consulterSolde(@Body() soldeData: { numero_compte: string; pin: string }) 
     throw new Error(`Erreur lors de la consultation du solde : ${error.message}`);
   }
 }
+
+// UsersInfo
+@Get('getUserInfos/:userId')
+@UseGuards(AuthGuard)
+async getUserInfos(@Param('userId') userId: string) {
+  try {
+    console.log(`Demande d'informations pour l'utilisateur ID : ${userId}`);
+
+    // Récupérer les informations de base de l'utilisateur
+    const userRecord = await this.usersService.getUserById(userId);
+    const userInfo = {
+      name: `${userRecord.prenom} ${userRecord.nom}`,
+      photo: userRecord.photo_url || null,
+      email: userRecord.email,
+      birthDate: userRecord.date_naissance,
+      status: userRecord.status,
+      pays: userRecord.nom_pays,
+      pays_status: userRecord.pays_status,
+      devise: userRecord.devise_code?.[0] || 'XOF',
+      ville: userRecord.ville,
+      adresse: userRecord.adresse,
+      telephone: userRecord.telephone,
+      numero_compte: userRecord.numero_compte,
+      solde: userRecord.solde || 0,
+      type_utilisateur: userRecord.type_utilisateur,
+    };
+
+    // Calculer le nombre de transactions
+    const transactionCount = await this.transactionsService.getTransactionCountForUser(userId);
+
+    // Récupérer la dernière transaction
+    const lastTransaction = await this.transactionsService.getLastTransactionForUser(userId);
+
+    // Retourner les informations complètes
+    return {
+      ...userInfo,
+      nombre_transactions: transactionCount,
+      derniere_transaction: lastTransaction,
+    };
+  } catch (error) {
+    console.error(`Erreur lors de la récupération des informations de l'utilisateur : ${error.message}`);
+    throw new Error(`Erreur lors de la récupération des informations de l'utilisateur : ${error.message}`);
+  }
+}
+
 }

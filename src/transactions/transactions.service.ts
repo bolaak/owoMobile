@@ -104,4 +104,49 @@ export class TransactionsService {
       throw error;
     }
   }
+
+  // Méthode pour compter le nombre de transactions où l'utilisateur est impliqué en tant qu'expéditeur ou destinataire
+  async getTransactionCountForUser(userId: string): Promise<number> {
+    try {
+      console.log(`Calcul du nombre de transactions pour l'utilisateur ID : ${userId}`);
+  
+      const transactions = await this.base('Transactions')
+        .select({
+          filterByFormula: `OR({expediteur_id} = '${userId}', {destinataire_id} = '${userId}')`,
+        })
+        .all();
+  
+      return transactions.length;
+    } catch (error) {
+      console.error(`Erreur lors du calcul du nombre de transactions : ${error.message}`);
+      throw error;
+    }
+  }
+  // Méthode pour récupérer les détails de la dernière transaction impliquant l'utilisateur
+  async getLastTransactionForUser(userId: string): Promise<any> {
+    try {
+      console.log(`Récupération de la dernière transaction pour l'utilisateur ID : ${userId}`);
+  
+      const transactions = await this.base('Transactions')
+        .select({
+          filterByFormula: `OR({expediteur_id} = '${userId}', {destinataire_id} = '${userId}')`,
+          sort: [{ field: 'date_transaction', direction: 'desc' }],
+        })
+        .firstPage();
+  
+      if (transactions.length === 0) {
+        return null; // Aucune transaction trouvée
+      }
+  
+      const lastTransaction = transactions[0];
+      return {
+        montant: lastTransaction.fields.montant,
+        date: lastTransaction.fields.date_transaction,
+        type_operation: lastTransaction.fields.type_operation,
+      };
+    } catch (error) {
+      console.error(`Erreur lors de la récupération de la dernière transaction : ${error.message}`);
+      throw error;
+    }
+  }
 }

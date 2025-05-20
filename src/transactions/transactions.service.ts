@@ -112,7 +112,7 @@ export class TransactionsService {
   
       const transactions = await this.base('Transactions')
         .select({
-          filterByFormula: `OR({expediteur_id} = '${userId}', {destinataire_id} = '${userId}')`,
+          filterByFormula: `OR({expediteur_id} = '${userId}', {destinataire_id} = '${userId}', {utilisateur_id} = '${userId}')`,
         })
         .all();
   

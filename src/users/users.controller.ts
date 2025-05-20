@@ -199,6 +199,7 @@ async getUserInfos(@Param('userId') userId: string) {
       pays: userRecord.nom_pays,
       pays_status: userRecord.pays_status,
       devise: userRecord.devise_code?.[0] || 'XOF',
+      code_pays: userRecord.code_pays?.[0] || '',
       ville: userRecord.ville,
       adresse: userRecord.adresse,
       telephone: userRecord.telephone,

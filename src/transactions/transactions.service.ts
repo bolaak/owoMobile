@@ -167,6 +167,7 @@ async getTransactionHistory(userId: string): Promise<any[]> {
       type_operation: record.fields.type_operation,
       description: record.fields.description || '',
       montant: record.fields.montant,
+      frais: record.fields.frais,
       expediteur_id: record.fields.expediteur_id?.[0],
       destinataire_id: record.fields.destinataire_id?.[0],
       utilisateur_id: record.fields.utilisateur_id?.[0],
@@ -199,9 +200,11 @@ calculateAccountStatement(transactions: any[], userId: string): any {
     balance += amount; // Mise à jour du solde progressif
 
     return {
+      id:transaction.id,
       date: transaction.date,
       type_operation: transaction.type_operation,
       description: transaction.description,
+      frais: transaction.frais,
       montant: amount,
       balance: balance,
     };

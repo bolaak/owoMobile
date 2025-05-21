@@ -14,8 +14,8 @@ export class AuthController {
         const result = await this.authService.login(credentials.numero_compte, credentials.mot_de_passe);
         return { message: 'Connexion réussie', token: result.token };
       } catch (error) {
-        //throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
-        throw new Error(`Erreur lors de la connexion : ${error.message}`);
+        throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
+        //throw Error(`Erreur lors de la connexion : ${error.message}`);
 
       }
   }

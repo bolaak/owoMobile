@@ -225,5 +225,29 @@ async getUserInfos(@Param('userId') userId: string) {
     throw new Error(`Erreur lors de la récupération des informations de l'utilisateur : ${error.message}`);
   }
 }
+// méthodes dans un contrôleur pour créer la route /account-statement/:userId
+@Get('statement/:userId')
+@UseGuards(AuthGuard)
+async getAccountStatement(@Param('userId') userId: string) {
+  try {
+    console.log(`Demande de relevé de compte pour l'utilisateur ID : ${userId}`);
 
+    // Récupérer l'historique des transactions
+    const rawTransactions = await this.transactionsService.getTransactionHistory(userId);
+
+    // Calculer le relevé de compte
+    const { statement, totalDebit, totalCredit, finalBalance } = this.transactionsService.calculateAccountStatement(rawTransactions, userId);
+
+    // Retourner le relevé de compte
+    return {
+      transactions: statement,
+      totalDebit,
+      totalCredit,
+      finalBalance,
+    };
+  } catch (error) {
+    console.error(`Erreur lors de la récupération du relevé de compte : ${error.message}`);
+    throw new Error(`Erreur lors de la récupération du relevé de compte : ${error.message}`);
+  }
+}
 }

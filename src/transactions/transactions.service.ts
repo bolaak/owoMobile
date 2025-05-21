@@ -149,4 +149,71 @@ export class TransactionsService {
       throw error;
     }
   }
+  // Méthode pour récupérer toutes les transactions impliquant un utilisateur donné.
+async getTransactionHistory(userId: string): Promise<any[]> {
+  try {
+    console.log(`Récupération de l'historique des transactions pour l'utilisateur ID : ${userId}`);
+
+    const transactions = await this.base('Transactions')
+      .select({
+        filterByFormula: `OR({expediteur_id} = '${userId}', {destinataire_id} = '${userId}', {utilisateur_id} = '${userId}')`,
+        sort: [{ field: 'date_transaction', direction: 'asc' }], // Tri par date croissante
+      })
+      .all();
+
+    return transactions.map((record) => ({
+      id: record.id,
+      date: record.fields.date_transaction,
+      type_operation: record.fields.type_operation,
+      description: record.fields.description || '',
+      montant: record.fields.montant,
+      expediteur_id: record.fields.expediteur_id?.[0],
+      destinataire_id: record.fields.destinataire_id?.[0],
+      utilisateur_id: record.fields.utilisateur_id?.[0],
+    }));
+  } catch (error) {
+    console.error(`Erreur lors de la récupération de l'historique des transactions : ${error.message}`);
+    throw error;
+  }
+}
+
+// Méthode pour traiter les données récupérées et calculer le solde progressif, ainsi que les totaux des débits et des crédits.
+calculateAccountStatement(transactions: any[], userId: string): any {
+  let balance = 0; // Solde initial
+  let totalDebit = 0; // Total des débits
+  let totalCredit = 0; // Total des crédits
+
+  const statement = transactions.map((transaction) => {
+    const isDebit = transaction.expediteur_id === userId;
+    const isCredit = transaction.destinataire_id === userId || transaction.utilisateur_id === userId ;
+
+    let amount = 0;
+    if (isDebit) {
+      amount = -transaction.montant; // Débit
+      totalDebit += transaction.montant;
+    } else if (isCredit) {
+      amount = transaction.montant; // Crédit
+      totalCredit += transaction.montant;
+    }
+
+    balance += amount; // Mise à jour du solde progressif
+
+    return {
+      date: transaction.date,
+      type_operation: transaction.type_operation,
+      description: transaction.description,
+      montant: amount,
+      balance: balance,
+    };
+  });
+  // Calcul du solde final
+  const finalBalance = totalCredit - totalDebit;
+  return {
+    statement,
+    totalDebit,
+    totalCredit,
+    finalBalance, // Ajout du solde final
+
+  };
+}
 }

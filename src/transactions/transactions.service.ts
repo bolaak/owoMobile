@@ -185,7 +185,7 @@ async getTransactionHistory(userId: string): Promise<any[]> {
 
     const transactions = await this.base('Transactions')
       .select({
-        filterByFormula: `OR({expediteur_id} = '${userId}', {destinataire_id} = '${userId}')`,
+        filterByFormula: `OR({expediteur_id} = '${userId}', {destinataire_id} = '${userId}', {utilisateur_id} = '${userId}')`,
         sort: [{ field: 'date_transaction', direction: 'asc' }], // Tri par date croissante
       })
       .all();

@@ -150,7 +150,7 @@ export class TransactionsService {
     }
   }
   // Méthode pour récupérer toutes les transactions impliquant un utilisateur donné.
-async getTransactionHistory(userId: string): Promise<any[]> {
+/*async getTransactionHistory(userId: string): Promise<any[]> {
   try {
     console.log(`Récupération de l'historique des transactions pour l'utilisateur ID : ${userId}`);
 
@@ -166,12 +166,55 @@ async getTransactionHistory(userId: string): Promise<any[]> {
       date: record.fields.date_transaction,
       type_operation: record.fields.type_operation,
       description: record.fields.description || '',
+      motif: record.fields.motif,
       montant: record.fields.montant,
       frais: record.fields.frais,
       expediteur_id: record.fields.expediteur_id?.[0],
       destinataire_id: record.fields.destinataire_id?.[0],
       utilisateur_id: record.fields.utilisateur_id?.[0],
     }));
+  } catch (error) {
+    console.error(`Erreur lors de la récupération de l'historique des transactions : ${error.message}`);
+    throw error;
+  }
+}*/
+// src/transactions/transactions.service.ts
+async getTransactionHistory(userId: string): Promise<any[]> {
+  try {
+    console.log(`Récupération de l'historique des transactions pour l'utilisateur ID : ${userId}`);
+
+    const transactions = await this.base('Transactions')
+      .select({
+        filterByFormula: `OR({expediteur_id} = '${userId}', {destinataire_id} = '${userId}')`,
+        sort: [{ field: 'date_transaction', direction: 'asc' }], // Tri par date croissante
+      })
+      .all();
+
+    return transactions.map((record) => {
+      const isDebit = record.fields.expediteur_id?.[0] === userId;
+      const isCredit = record.fields.destinataire_id?.[0] === userId;
+
+      // Sélectionner la description en fonction du rôle de l'utilisateur
+      const description = isDebit
+        ? record.fields.exp_desc || 'Aucune description disponible'
+        : isCredit
+        ? record.fields.dest_desc || 'Aucune description disponible'
+        : 'Description inconnue';
+
+      return {
+        id: record.id,
+        date: record.fields.date_transaction,
+        type_operation: record.fields.type_operation,
+        description, // Description dynamique
+        motif: record.fields.motif,
+        montant: record.fields.montant,
+        frais: record.fields.frais,        
+        expediteur_id: record.fields.expediteur_id?.[0],
+        destinataire_id: record.fields.destinataire_id?.[0],
+        utilisateur_id: record.fields.utilisateur_id?.[0],
+
+      };
+    });
   } catch (error) {
     console.error(`Erreur lors de la récupération de l'historique des transactions : ${error.message}`);
     throw error;
@@ -204,7 +247,8 @@ calculateAccountStatement(transactions: any[], userId: string): any {
       date: transaction.date,
       type_operation: transaction.type_operation,
       description: transaction.description,
-      frais: transaction.frais,
+      frais: transaction.frais || 0,
+      motif: transaction.motif,
       montant: amount,
       balance: balance,
     };

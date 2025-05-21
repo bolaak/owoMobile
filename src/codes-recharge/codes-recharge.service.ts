@@ -231,4 +231,34 @@ async getCodeRechargeIdByCode(code: string): Promise<string> {
 
   return records[0].id; // Retourne l'ID d'enregistrement du code de recharge
 }
+
+  // Méthode pour récupérer les codes de recharge d'un utilisateur
+  async getRechargeCodesForUser(userId: string): Promise<any[]> {
+    try {
+      console.log(`Récupération des codes de recharge pour l'utilisateur ID : ${userId}`);
+
+      const rechargeRecords = await this.base('CodesRecharge')
+        .select({
+          filterByFormula: `{master_id} = '${userId}'`,
+          sort: [{ field: 'created_at', direction: 'desc' }], // Tri par date décroissante
+        })
+        .all();
+
+      return rechargeRecords.map((record) => ({
+        id: record.id,
+        code: record.fields.code,
+        montant: record.fields.montant,
+        status: record.fields.status,
+        created_at: record.fields.created_at,
+        master_id: record.fields.master_id?.[0],
+        master_name: record.fields.master_name?.[0],
+        master_pays: record.fields.master_pays?.[0],
+
+
+      }));
+    } catch (error) {
+      console.error(`Erreur lors de la récupération des codes de recharge : ${error.message}`);
+      throw error;
+    }
+  }
 }

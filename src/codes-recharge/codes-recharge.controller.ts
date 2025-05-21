@@ -1,6 +1,7 @@
 // src/codes-recharge/codes-recharge.controller.ts
 import { Controller, Get, Post, Body, Put, Delete, Param, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { AdminGuard } from '../auth/admin.guard';
+import { AuthGuard } from '../auth/auth.guard';
 import { CodesRechargeService } from './codes-recharge.service';
 import { CreateCodeRechargeDto } from './dto/create-code-recharge.dto';
 
@@ -23,7 +24,7 @@ export class CodesRechargeController {
   }
 
    // Créer un nouveau code de recharge
-   @Post()
+   @Post('add')
    @UseGuards(AdminGuard)
    @UsePipes(new ValidationPipe())
    async createCodeRecharge(@Body() codeData: CreateCodeRechargeDto) {
@@ -49,5 +50,21 @@ export class CodesRechargeController {
   @UseGuards(AdminGuard)
   async deleteCodeRecharge(@Param('id') id: string) {
     return this.codesRechargeService.deleteCodeRecharge(id);
+  }
+
+    @Get('getUserCodes/:userId')
+   @UseGuards(AuthGuard)
+  async getRechargeCodes(@Param('userId') userId: string) {
+    try {
+      console.log(`Demande de la liste des codes de recharge pour l'utilisateur ID : ${userId}`);
+
+      // Récupérer les codes de recharge
+      const rechargeCodes = await this.codesRechargeService.getRechargeCodesForUser(userId);
+
+      return {data: rechargeCodes};
+    } catch (error) {
+      console.error(`Erreur lors de la récupération des codes de recharge : ${error.message}`);
+      throw new Error(`Erreur lors de la récupération des codes de recharge : ${error.message}`);
+    }
   }
 }

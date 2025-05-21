@@ -4,7 +4,7 @@ import { IsMasterExists } from '../../validators/is-master-exists.validator';
 
 export class CreateCodeRechargeDto {
   @IsNumber()
-  @Min(1)
+  @Min(6)
   @IsNotEmpty()
   montant: number;
 

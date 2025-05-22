@@ -3,10 +3,11 @@ import { IsNumber, IsNotEmpty, Min, Validate, IsString, IsArray, IsOptional } fr
 import { IsMasterExists } from '../../validators/is-master-exists.validator';
 
 export class CreateCodeRechargeDto {
-  @IsNumber()
-  @Min(6)
+  //@IsNumber()
+  @IsString()
+  //@Min(6)
   @IsNotEmpty()
-  montant: number;
+  montant: string; //number;
 
   @IsString()
   @IsNotEmpty()

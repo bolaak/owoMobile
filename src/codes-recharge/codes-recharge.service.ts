@@ -40,7 +40,7 @@ export class CodesRechargeService {
 
   // Créer un nouveau code de recharge
   async createCodeRecharge(codeData: any, files?: Express.Multer.File[]): Promise<any> {
-    const { montant, master_id } = codeData;
+    const { montant, master_id, motif, attached } = codeData;
   
     // Validation : vérifier que le Master existe et est de type "MASTER"
     await this.validateMasterId(master_id);
@@ -62,7 +62,7 @@ export class CodesRechargeService {
       }
       
     // Validation : vérifier que le montant est >= 1 000 000
-    if (montant < 1000000) {
+    if (codeData.montant < 10000) {
         throw new Error('Le montant doit être supérieur ou égal à 1 000 000.');
     }
 
@@ -286,6 +286,8 @@ async getCodeRechargeIdByCode(code: string): Promise<string> {
         code: record.fields.code,
         montant: record.fields.montant,
         status: record.fields.status,
+        motif: record.fields.motif,
+        devise: record.fields.devise?.[0],
         created_at: record.fields.created_at,
         master_id: record.fields.master_id?.[0],
         master_name: record.fields.master_name?.[0],

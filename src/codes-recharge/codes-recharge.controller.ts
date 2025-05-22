@@ -1,9 +1,13 @@
 // src/codes-recharge/codes-recharge.controller.ts
-import { Controller, Get, Post, Body, Put, Delete, Param, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Delete, Param, UseGuards, UsePipes, ValidationPipe,Request, UseInterceptors, UploadedFiles, UploadedFile } from '@nestjs/common';
 import { AdminGuard } from '../auth/admin.guard';
 import { AuthGuard } from '../auth/auth.guard';
 import { CodesRechargeService } from './codes-recharge.service';
 import { CreateCodeRechargeDto } from './dto/create-code-recharge.dto';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+
+
 
 @Controller('codes-recharge')
 export class CodesRechargeController {
@@ -27,16 +31,26 @@ export class CodesRechargeController {
    @Post('add')
    @UseGuards(AdminGuard)
    @UsePipes(new ValidationPipe())
-   async createCodeRecharge(@Body() codeData: CreateCodeRechargeDto) {
-     return this.codesRechargeService.createCodeRecharge(codeData);
+  @UseInterceptors(
+    FilesInterceptor('attached', 5, {
+      storage: diskStorage({
+        destination: './uploads', // Stocker les fichiers temporairement
+        filename: (req, file, callback) => {
+          callback(null, `${Date.now()}-${file.originalname}`);
+        },
+      }),
+    })
+  )
+   async createCodeRecharge(
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body() codeData: CreateCodeRechargeDto) {
+     try {
+     return this.codesRechargeService.createCodeRecharge(codeData, files);
+     } catch (error) {
+      console.error('Erreur lors de la création du code :', error.message);
+      throw error;
+    }
    }
-
-  /*@Post()
-  @UseGuards(AdminGuard)
-  @UsePipes(new ValidationPipe())
-  async createCodeRecharge(@Body() codeData: CreateCodeRechargeDto) {
-    return this.codesRechargeService.createCodeRecharge(codeData);
-  }*/
 
   // Mettre à jour un code de recharge existant
   @Put(':id')

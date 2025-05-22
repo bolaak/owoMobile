@@ -2,12 +2,14 @@
 import { Injectable } from '@nestjs/common';
 import * as Airtable from 'airtable';
 import { Config } from '../config';
+import { GCSService } from '../google_cloud/gcs.service';
+import { unlinkSync } from 'fs';
 
 @Injectable()
 export class CodesRechargeService {
   private base;
 
-  constructor() {
+  constructor(private readonly gcsService: GCSService) {
     // Configurez Airtable directement ici
     if (!Config.AIRTABLE_API_KEY || !Config.AIRTABLE_BASE_ID) {
       throw new Error('AIRTABLE_API_KEY or AIRTABLE_BASE_ID is not defined in the environment variables');
@@ -37,7 +39,7 @@ export class CodesRechargeService {
   }
 
   // Créer un nouveau code de recharge
-  async createCodeRecharge(codeData: any) {
+  async createCodeRecharge(codeData: any, files?: Express.Multer.File[]): Promise<any> {
     const { montant, master_id } = codeData;
   
     // Validation : vérifier que le Master existe et est de type "MASTER"
@@ -54,7 +56,11 @@ export class CodesRechargeService {
     if (!isActivated) {
         throw new Error('Ce Master n\'est pas activé et ne peut pas recevoir de code de recharge.');
     }
-
+      // Convertir montant en nombre si c'est une chaîne
+      if (codeData.montant && typeof codeData.montant === 'string') {
+        codeData.montant = parseFloat(codeData.montant); // Conversion en nombre
+      }
+      
     // Validation : vérifier que le montant est >= 1 000 000
     if (montant < 1000000) {
         throw new Error('Le montant doit être supérieur ou égal à 1 000 000.');
@@ -64,6 +70,37 @@ export class CodesRechargeService {
     const hasActiveCode = await this.hasActiveCode(master_id);
     if (hasActiveCode) {
         throw new Error('Ce Master a un code de recharge actif.');
+    }
+        // Gestion des images locales
+    if (files && files.length > 0) {
+      // Uploader chaque fichier vers GCS
+      const uploadedImages = await Promise.all(
+        files.map(async (file) => {
+          try {
+            // Uploader l'image vers GCS
+            const publicUrl = await this.gcsService.uploadImage(file.path);
+
+            // Supprimer le fichier local après l'upload
+            unlinkSync(file.path); // Nettoyage du fichier temporaire
+
+            return publicUrl;
+          } catch (error) {
+            console.error('Erreur lors de l\'upload de l\'image :', error.message);
+            throw new Error('Impossible d\'uploader l\'image.');
+          }
+        })
+      );
+      // Remplacer le champ attached par les URLs des images uploadées
+      codeData.attached = uploadedImages.map(url => ({ url }));
+    } else if (codeData.attached) {
+      // Si attached est une chaîne (URL), convertissez-la en tableau d'objets
+      if (typeof codeData.attached === 'string') {
+        codeData.attached = [{ url: codeData.attached }];
+      }
+      // Si attached est un tableau de chaînes, convertissez chaque élément
+      else if (Array.isArray(codeData.attached)) {
+        codeData.attached = codeData.attached.map(url => ({ url }));
+      }
     }
   
     try {
@@ -97,7 +134,7 @@ export class CodesRechargeService {
       await this.base('CodesRecharge').update(id, updatedData);
       return { message: 'Code de recharge mis à jour avec succès.' };
     } catch (error) {
-      throw new Error(`Erreur lors de la mise à jour du code de recharge : ${error.message}`);
+      throw error; //(`Erreur lors de la mise à jour du code de recharge : ${error.message}`);
     }
   }
 

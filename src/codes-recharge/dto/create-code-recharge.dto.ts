@@ -1,11 +1,10 @@
 // src/codes-recharge/dto/create-code-recharge.dto.ts
 import { IsNumber, IsNotEmpty, Min, Validate, IsString, IsArray, IsOptional } from 'class-validator';
-import { IsMasterExists } from '../../validators/is-master-exists.validator';
 
 export class CreateCodeRechargeDto {
   //@IsNumber()
-  @IsString()
   //@Min(6)
+  @IsString()
   @IsNotEmpty()
   montant: string; //number;
 

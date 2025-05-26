@@ -10,9 +10,10 @@ import { CompteSystemeModule } from './compte-systeme/compte-systeme.module';
 import { CommissionnementModule } from './commissionnement/commissionnement.module';
 import { CodesRechargeModule } from './codes-recharge/codes-recharge.module';
 import { TransactionsModule } from './transactions/transactions.module';
+import { AgripayModule } from './agripay/agripay.module';
 
 @Module({
-  imports: [UsersModule, MailModule, AuthModule, PaysModule, GrilleTarifaireModule, CompteSystemeModule, CommissionnementModule, CodesRechargeModule, TransactionsModule],
+  imports: [UsersModule, MailModule, AuthModule, PaysModule, GrilleTarifaireModule, CompteSystemeModule, CommissionnementModule, CodesRechargeModule, TransactionsModule, AgripayModule],
   controllers: [AppController],
   providers: [AppService],
 })

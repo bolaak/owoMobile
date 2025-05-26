@@ -40,7 +40,16 @@ export class CodesRechargeService {
 
   // Créer un nouveau code de recharge
   async createCodeRecharge(codeData: any, files?: Express.Multer.File[]): Promise<any> {
-    const { montant, master_id, motif, attached } = codeData;
+    const { montant, master_id} = codeData;
+
+    // Validation et conversion explicite du montant
+    if (typeof codeData.montant === 'string') {
+      const parsedMontant = parseFloat(codeData.montant);
+      if (isNaN(parsedMontant)) {
+        throw new Error('Le montant fourni n\'est pas un nombre valide.');
+      }
+      codeData.montant = parsedMontant; // Assurez-vous que c'est un nombre
+    }
   
     // Validation : vérifier que le Master existe et est de type "MASTER"
     await this.validateMasterId(master_id);
@@ -56,13 +65,9 @@ export class CodesRechargeService {
     if (!isActivated) {
         throw new Error('Ce Master n\'est pas activé et ne peut pas recevoir de code de recharge.');
     }
-      // Convertir montant en nombre si c'est une chaîne
-      if (codeData.montant && typeof codeData.montant === 'string') {
-        codeData.montant = parseFloat(codeData.montant); // Conversion en nombre
-      }
       
     // Validation : vérifier que le montant est >= 1 000 000
-    if (codeData.montant < 10000) {
+    if (montant < 10000) {
         throw new Error('Le montant doit être supérieur ou égal à 1 000 000.');
     }
 
@@ -108,10 +113,11 @@ export class CodesRechargeService {
       const createdRecords = await this.base('CodesRecharge').create([
         {
           fields: {
-            montant,
+            montant :codeData.montant,
             master_id: [master_id], // Encapsuler master_id dans un tableau
             code,
             status: 'Activated', // Initialisation du statut à Activated
+            attached: codeData.attached || [], // Assurez-vous que attached est un tableau d'objets
           },
         },
       ]);

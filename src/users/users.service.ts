@@ -28,8 +28,7 @@ export class UsersService {
     private readonly grilleTarifaireService: GrilleTarifaireService,
     private readonly compteSystemeService: CompteSystemeService, 
     private readonly commissionsService: CommissionnementService, 
-    private readonly transactionsService: TransactionsService,
-    private readonly gcsService: GCSService) {
+    private readonly transactionsService: TransactionsService,    private readonly gcsService: GCSService) {
 
     // Configurez Airtable directement ici
     const airtable = new Airtable({ apiKey: Config.AIRTABLE_API_KEY });
@@ -1178,6 +1177,34 @@ async creditSolde(userId: string, montant: number) {
 
   return { solde: newSolde };
 }
+  // Méthode pour générer un code OTP et l'envoyer par e-mail.
+  async validateAgripayOTP(userId: string, operation_id: string, otpCode: string): Promise<boolean> {
+    // Récupérer le code OTP associé à l'utilisateur
+    const otpRecords = await this.base('OTP')
+      .select({
+        filterByFormula: `AND({user_id} = '${userId}', {operation_id} = '${operation_id}', {code} = '${otpCode}', {used} = 'false')`,
+      })
+      .firstPage();
+  
+    if (otpRecords.length === 0) {
+      throw new Error('Données envoyées invalides ou code OTP déjà utilisé.');
+
+    }
+  
+    const otpRecord = otpRecords[0];
+    const expiresAt = new Date(otpRecord.fields.expires_at);
+  
+    // Vérifier si le code OTP est expiré
+    if (expiresAt < new Date()) {
+      throw new Error('Code OTP expiré.');
+    }
+  
+    // Marquer le code OTP comme utilisé
+    await this.base('OTP').update(otpRecord.id, { used: 'true' });
+  
+    console.log(`Code OTP validé pour l'utilisateur ID : ${userId}`);
+    return true;
+  }
 
   // Méthode pour générer un code OTP et l'envoyer par e-mail.
   async validateOTP(userId: string, destinataireId: string, otpCode: string, montant: number): Promise<boolean> {
@@ -1240,6 +1267,40 @@ async creditSolde(userId: string, montant: number) {
     return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.', operationId};
     //return otpCode;
   }
+  // Méthode pour générer un code OTP
+  async generateAgripayOTP(userId: string, montant: number, orderId: string, farmers: Array<{ numero_compte: string; montant: number }>, motif: string ): Promise<{ operationId: string, message: string }> {
+    //const otpCode = crypto.randomBytes(3).toString('hex').toUpperCase(); // Exemple : "A1B2C3"
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const operationId = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+
+    const expiresAt = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes
+
+    // Stocker le code OTP dans la table OTP
+    await this.base('OTP').create([
+      {
+        fields: {
+          user_id: [userId],
+          montant: montant,
+          motif: motif,
+          code: otpCode,
+          operation_id: operationId,
+          orderId: orderId,
+          farmers: JSON.stringify(farmers), // Convertir les farmers en chaîne JSON
+          expires_at: expiresAt.toISOString(),
+        },
+      },
+    ]);
+
+    // Envoyer le code OTP par e-mail
+    const user = await this.getUserById(userId);
+    const email = user.email;
+    await this.mailService.sendOTPEmail(email, otpCode, operationId);
+
+    console.log(`Code OTP généré pour l'utilisateur ID : ${userId}, Opération ID : ${operationId}`);
+    return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.', operationId};
+    //return otpCode;
+  }
+
   // Méthode pour vérifier si le code OTP associé à une opération a expiré
   async checkOTPExpiration(operationId: string): Promise<boolean> {
     try {
@@ -1755,5 +1816,138 @@ async exchangeBalance(
       throw error; //(`Erreur lors de l'exécution de l'opération : ${error.message}`);
     }
   }
+// src/users/users.service.ts
+async debitBusinessAccount(businessNumeroCompte: string, amount: number, orderId: string, motif: string): Promise<void> {
+  try {
+    console.log(`Débit du compte EBUSINESS : ${businessNumeroCompte}, Montant : ${amount}`);
 
+    const businessRecord = await this.getUserByNumeroCompte(businessNumeroCompte);
+    const currentBalance = businessRecord.solde || 0;
+    const newBalance = currentBalance - amount;
+
+    await this.updateSolde(businessRecord.id, newBalance);
+    console.log(`Compte EBUSINESS débité avec succès : Nouveau solde = ${newBalance}`);
+    const marchandDeviseCode = businessRecord.devise_code?.[0] || 'XOF';
+
+      await this.mailService.sendDebitedEmailAgripay(
+      businessRecord.email,
+      businessRecord.nom,
+      amount,
+      marchandDeviseCode,
+      motif,
+      orderId
+    );
+
+  } catch (error) {
+    console.error(`Erreur lors du débit du compte EBUSINESS : ${error.message}`);
+    throw error;
+  }
+}
+// src/users/users.service.ts
+async creditClientAccounts(orderId: string, motif: string, clientAccounts: { numero_compte: string; montant: number }[]): Promise<void> {
+  try {
+    console.log('Crédit des comptes CLIENT...');
+
+    for (const client of clientAccounts) {
+      const clientRecord = await this.getUserByNumeroCompte(client.numero_compte);
+
+      // Vérifier que le Client est de type "CLIENT"
+       await this.validateUserType(clientRecord.id, 'CLIENT');
+      console.log('Client trouvé :', clientRecord);
+
+      const currentBalance = clientRecord.solde || 0;
+      const newBalance = currentBalance + client.montant;
+
+      await this.updateSolde(clientRecord.id, newBalance);
+      console.log(`Compte CLIENT trouvé crédité : ${client.numero_compte}, Nouveau solde = ${newBalance}`);
+
+      const clientDeviseCode = clientRecord.devise_code?.[0] || 'XOF';
+      await this.mailService.sendCreditedEmailAgripay(
+      clientRecord.email,
+      clientRecord.nom,
+      client.montant,
+      clientDeviseCode,
+      motif,
+      orderId
+    );
+    }
+  } catch (error) {
+    console.error(`Erreur lors du crédit des comptes CLIENT : ${error.message}`);
+    throw error;
+  }
+}
+
+  //méthode pour effectuer un Paiement une fois que le code OTP est validé.
+  async executerOperationAgripay(marchand_numero_compte: string, client_numero_compte: string, montant: number, motif: string) {
+    try {
+      console.log('Début de l\'exécution de l\'opération...');
+
+      // Récupérer les enregistrements du Marchand et du Client
+      const marchandRecord = await this.getUserByNumeroCompte(marchand_numero_compte);
+      const clientRecord = await this.getUserByNumeroCompte(client_numero_compte);
+
+      // Calculer les frais de dépot
+      //const type_operation = 'PAIEMENT';
+      //const compteSysteme = await this.compteSystemeService.getCompteSystemeByTypeOperation('RETRAIT');
+
+      // Débiter le solde du Marchand
+      console.log('Débit du solde du Client ...');
+      const newClientSolde = (clientRecord.solde || 0) - montant;
+      await this.updateSolde(clientRecord.id, newClientSolde);
+
+      // Créditer le solde du Client
+      console.log('Crédit du solde du Marchand_Business...');
+      const newMarchandSolde = (marchandRecord.solde || 0) + montant;
+      await this.updateSolde(marchandRecord.id, newMarchandSolde);
+
+    // Envoi des e-mails
+    const marchandDeviseCode = marchandRecord.devise_code?.[0] || 'XOF';
+    const clientDeviseCode = clientRecord.devise_code?.[0] || 'XOF';
+
+    await this.mailService.sendDebitedEmailDepot(
+      clientRecord.email,
+      clientRecord.nom,
+      marchandRecord.nom,
+      montant,
+      clientDeviseCode,
+      motif
+    );
+    await this.mailService.sendCreditedEmail(
+      marchandRecord.email,
+      marchandRecord.nom,
+      clientRecord.nom,
+      montant,
+      marchandDeviseCode,
+      motif
+    );
+
+      // Créer la transaction
+      console.log('Création de la transaction...');
+      const deviseCode = clientRecord.devise_code?.[0] || 'XOF'; // Récupérer la devise du pays 
+      const description = `Opération de paiement Marchand. Client(${client_numero_compte}) => Marchand_Business(${marchand_numero_compte}) de ${montant} ${deviseCode}`;
+      //await this.transactionsService.createTransactionAppro({
+       const transaction = await this.transactionsService.createTransactionAppro({
+        type_operation: 'PAIEMENT',
+        montant,
+        //date_transaction: new Date().toISOString(),
+        expediteur_id: clientRecord.id,
+        destinataire_id: marchandRecord.id,
+        description,
+        motif,
+        status: 'SUCCESS',
+      });
+
+    // Partager les commissions
+    //await this.shareCommissionsDepot(type_operation, clientRecord.pays_id, montant, marchand_numero_compte, compteSysteme);
+
+    // Récupérer l'ID de la transaction créée
+    const transactionId = transaction.id;
+    
+      console.log('Opération exécutée avec succès.');
+      return { transaction_id: transactionId, nouveau_solde_marchand: newMarchandSolde, nouveau_solde_client: newClientSolde };
+    } catch (error) {
+      console.error('Erreur lors de l\'exécution de l\'opération :', error.message);
+      throw error; //(`Erreur lors de l'exécution de l'opération : ${error.message}`);
+    }
+  }
 }

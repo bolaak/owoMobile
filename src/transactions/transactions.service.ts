@@ -221,6 +221,49 @@ async getTransactionHistory(userId: string): Promise<any[]> {
   }
 }
 
+// src/transactions/transactions.service.ts
+async getTransactionHistoryType(userId: string, type_operation: string): Promise<any[]> {
+  try {
+    console.log(`Récupération de l'historique des transactions pour l'utilisateur ID : ${userId}`);
+
+    const transactions = await this.base('Transactions')
+      .select({
+        filterByFormula: `{type_operation} = '${type_operation}', OR({expediteur_id} = '${userId}', {destinataire_id} = '${userId}', {utilisateur_id} = '${userId}')`,
+        sort: [{ field: 'date_transaction', direction: 'asc' }], // Tri par date croissante
+      })
+      .all();
+
+    return transactions.map((record) => {
+      const isDebit = record.fields.expediteur_id?.[0] === userId;
+      const isCredit = record.fields.destinataire_id?.[0] === userId;
+
+      // Sélectionner la description en fonction du rôle de l'utilisateur
+      const description = isDebit
+        ? record.fields.exp_desc || 'Aucune description disponible'
+        : isCredit
+        ? record.fields.dest_desc || 'Aucune description disponible'
+        : 'Description inconnue';
+
+      return {
+        id: record.id,
+        date: record.fields.date_transaction,
+        type_operation: record.fields.type_operation,
+        description, // Description dynamique
+        motif: record.fields.motif,
+        montant: record.fields.montant,
+        frais: record.fields.frais,        
+        expediteur_id: record.fields.expediteur_id?.[0],
+        destinataire_id: record.fields.destinataire_id?.[0],
+        utilisateur_id: record.fields.utilisateur_id?.[0],
+
+      };
+    });
+  } catch (error) {
+    console.error(`Erreur lors de la récupération de l'historique des transactions : ${error.message}`);
+    throw error;
+  }
+}
+
 // Méthode pour traiter les données récupérées et calculer le solde progressif, ainsi que les totaux des débits et des crédits.
 calculateAccountStatement(transactions: any[], userId: string): any {
   let balance = 0; // Solde initial

@@ -1,6 +1,5 @@
 // src/transactions/transactions.controller.ts
 import { Controller, Post, Body, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '../auth/auth.guard';
 import { MasterGuard } from '../auth/master.guard';
 import { AdminGuard } from '../auth/admin.guard';
 import { MarchandGuard } from '../auth/marchand.guard';
@@ -130,7 +129,7 @@ async rechargeCompte(@Body() rechargeData: { master_id: string; code: string }) 
       }
   }
   // enpoint pour valider l'opération d'approvisionnement
-  @Post('valider-operation')
+  @Post('valider-appro')
   @UseGuards(MasterGuard)
   async validerOperation(@Body() validationData: { master_numero_compte: string; marchand_numero_compte: string; montant: number; motif: string; otpCode: string}) {
     const { master_numero_compte, marchand_numero_compte, montant, motif, otpCode } = validationData;
@@ -558,7 +557,7 @@ async exchangeBalance(@Body() exchangeData: { typeOperation: string; direction: 
 
    //endpoint permettant à un Client de payer un Marchand.
    @Post('payment')
-   //@UseGuards(ClientGuard)
+   @UseGuards(ClientGuard)
    async payment(@Body() approvisionnementData: { client_numero_compte: string; marchand_numero_compte: string; montant: number; motif: string; pin: string }) {
      const { client_numero_compte, marchand_numero_compte, montant, motif, pin } = approvisionnementData;
    
@@ -626,7 +625,7 @@ async exchangeBalance(@Body() exchangeData: { typeOperation: string; direction: 
  }
   // enpoint pour valider l'opération de dépot
   @Post('valider-payment')
-  //@UseGuards(ClientGuard)
+  @UseGuards(ClientGuard)
   async validerPayment(@Body() validationData: { client_numero_compte: string; marchand_numero_compte: string; montant: number; motif: string; otpCode: string}) {
     const { client_numero_compte, marchand_numero_compte, montant, motif, otpCode} = validationData;
 
@@ -674,7 +673,7 @@ async exchangeBalance(@Body() exchangeData: { typeOperation: string; direction: 
 
 // src/approvisionnement/approvisionnement.controller.ts
 @Post('resend-otp')
-//@UseGuards(AuthGuard)
+//UseGuards(AuthGuard)
 async regenerateOTP(@Body() otpData: { operationId: string }) {
   const { operationId } = otpData;
 

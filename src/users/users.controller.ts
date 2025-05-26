@@ -66,7 +66,7 @@ export class UsersController {
   }
 
   @Post('recover-pin')
-  @UseGuards(AdminGuard) // Assurez-vous que seul un administrateur peut accéder à cette route
+  @UseGuards(AuthGuard) // Assurez-vous que seul un administrateur peut accéder à cette route
   async recoverPIN(@Body() body: { numero_compte: string }) {
     const { numero_compte } = body;
 
@@ -250,4 +250,32 @@ async getAccountStatement(@Param('userId') userId: string) {
     throw new Error(`Erreur lors de la récupération du relevé de compte : ${error.message}`);
   }
 }
+
+/*@Get('statementType/:userId')
+@UseGuards(AuthGuard)
+async getAccountStatementType(
+  @Param('userId') userId: string,
+  @Body() body: { type_operation: string }) {
+  try {
+    console.log(`Demande de relevé de compte pour l'utilisateur ID : ${userId}`);
+
+    // Récupérer l'historique des transactions
+    const rawTransactions = await this.transactionsService.getTransactionHistoryType(userId, type_operation);
+
+    // Calculer le relevé de compte
+    const { statement, totalDebit, totalCredit, finalBalance } = this.transactionsService.calculateAccountStatement(rawTransactions, userId);
+
+    // Retourner le relevé de compte
+    return {
+      transactions: statement,
+      totalDebit,
+      totalCredit,
+      finalBalance,
+    };
+  } catch (error) {
+    console.error(`Erreur lors de la récupération du relevé de compte : ${error.message}`);
+    throw new Error(`Erreur lors de la récupération du relevé de compte : ${error.message}`);
+  }
+}*/
+
 }

@@ -56,7 +56,7 @@ export class MailService {
 
   async sendTransactionEmail(to: string, subject: string, body: string): Promise<void> {
     const mailOptions = {
-      from: `"OwoMobile" <${Config.SMTP_USER}>`,
+      from: `"owoPay" <${Config.SMTP_USER}>`,
       to,
       subject,
       text: body,
@@ -127,6 +127,21 @@ async sendDebitedEmailDepot(debiteurEmail: string, debiteurNom: string, crediteu
   `;
   await this.sendTransactionEmail(debiteurEmail, subject, body);
 }
+async sendDebitedEmailAgripay(debiteurEmail: string, debiteurNom: string, montant: number, devise: string, motif: string, orderId: string): Promise<void> {
+  const subject = 'AGRICONNECT-AYMENT';
+  const body = `
+    Bonjour ${debiteurNom},
+
+    Votre compte a été débité de ${montant} ${devise}.
+    Détails de la transaction :
+    - Motif : ${motif}
+    - Commande : ${orderId}
+    
+
+    Merci d'avoir utilisé notre service.
+  `;
+  await this.sendTransactionEmail(debiteurEmail, subject, body);
+}
 
 async sendCreditedEmail(crediteurEmail: string, crediteurNom: string, debiteurNom: string, montant: number, devise: string, motif: string): Promise<void> {
   const subject = 'Notification de crédit de compte';
@@ -137,6 +152,22 @@ async sendCreditedEmail(crediteurEmail: string, crediteurNom: string, debiteurNo
     Détails de la transaction :
     - Motif : ${motif}
     - Expéditeur : ${debiteurNom}
+
+
+    Merci d'avoir utilisé notre service.
+  `;
+  await this.sendTransactionEmail(crediteurEmail, subject, body);
+}
+async sendCreditedEmailAgripay(crediteurEmail: string, crediteurNom: string, montant: number, devise: string, motif: string, orderId: string): Promise<void> {
+  const subject = 'AGRICONNECT-PAYMENT';
+  const body = `
+    Bonjour ${crediteurNom},
+
+    Votre compte a été crédité de ${montant} ${devise}.
+    Détails de la transaction :
+    - Motif : ${motif}
+    - Commande : ${orderId}
+
 
     Merci d'avoir utilisé notre service.
   `;

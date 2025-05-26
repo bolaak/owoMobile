@@ -24,7 +24,7 @@ export class AuthGuard implements CanActivate {
       return true;
     } catch (error) {
       console.error('Erreur lors de la vérification du token :', error); // Log pour capturer les erreurs
-      throw new Error('Token invalide.');
+      throw error;
     }
   }
 }

@@ -185,14 +185,14 @@ async getTransactionHistory(userId: string): Promise<any[]> {
 
     const transactions = await this.base('Transactions')
       .select({
-        filterByFormula: `OR({expediteur_id} = '${userId}', {destinataire_id} = '${userId}', {utilisateur_id} = '${userId}')`,
+        filterByFormula: `OR({expediteur_id} = '${userId}', {destinataire_id} = '${userId}', {utilisateur_id} = '${userId}', {compteCommission} = '${userId}')`,
         sort: [{ field: 'date_transaction', direction: 'asc' }], // Tri par date croissante
       })
       .all();
 
     return transactions.map((record) => {
-      const isDebit = record.fields.expediteur_id?.[0] === userId;
-      const isCredit = record.fields.destinataire_id?.[0] === userId;
+      const isDebit = record.fields.expediteur_id?.[0] || record.fields.compteCommission?.[0] === userId;
+      const isCredit = record.fields.destinataire_id?.[0] || record.fields.utilisateur_id?.[0] === userId;
 
       // Sélectionner la description en fonction du rôle de l'utilisateur
       const description = isDebit
@@ -212,6 +212,8 @@ async getTransactionHistory(userId: string): Promise<any[]> {
         expediteur_id: record.fields.expediteur_id?.[0],
         destinataire_id: record.fields.destinataire_id?.[0],
         utilisateur_id: record.fields.utilisateur_id?.[0],
+        compteCommission: record.fields.compteCommission?.[0],
+
 
       };
     });
@@ -228,7 +230,7 @@ async getTransactionHistoryType(userId: string, type_operation: string): Promise
 
     const transactions = await this.base('Transactions')
       .select({
-        filterByFormula: `{type_operation} = '${type_operation}', OR({expediteur_id} = '${userId}', {destinataire_id} = '${userId}', {utilisateur_id} = '${userId}')`,
+        filterByFormula: `{type_operation} = '${type_operation}', OR({expediteur_id} = '${userId}', {destinataire_id} = '${userId}', {utilisateur_id} = '${userId}', {compteCommission} = '${userId}')`,
         sort: [{ field: 'date_transaction', direction: 'asc' }], // Tri par date croissante
       })
       .all();
@@ -248,13 +250,14 @@ async getTransactionHistoryType(userId: string, type_operation: string): Promise
         id: record.id,
         date: record.fields.date_transaction,
         type_operation: record.fields.type_operation,
-        description, // Description dynamique
+        description, // Description dynamique 
         motif: record.fields.motif,
         montant: record.fields.montant,
         frais: record.fields.frais,        
         expediteur_id: record.fields.expediteur_id?.[0],
         destinataire_id: record.fields.destinataire_id?.[0],
         utilisateur_id: record.fields.utilisateur_id?.[0],
+        compteCommission: record.fields.compteCommission?.[0],
 
       };
     });
@@ -271,15 +274,15 @@ calculateAccountStatement(transactions: any[], userId: string): any {
   let totalCredit = 0; // Total des crédits
 
   const statement = transactions.map((transaction) => {
-    const isDebit = transaction.expediteur_id === userId;
+    const isDebit = transaction.expediteur_id === userId || transaction.compteCommission === userId;
     const isCredit = transaction.destinataire_id === userId || transaction.utilisateur_id === userId ;
 
     let amount = 0;
     if (isDebit) {
-      amount = -transaction.montant; // Débit
+      amount = -transaction.montant; 
       totalDebit += transaction.montant;
     } else if (isCredit) {
-      amount = transaction.montant; // Crédit
+      amount = transaction.montant; 
       totalCredit += transaction.montant;
     }
 

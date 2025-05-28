@@ -15,7 +15,7 @@ export class AuthController {
         return { message: 'Connexion réussie', token: result.token };
       } catch (error) {
         throw new HttpException(error.message, HttpStatus.UNAUTHORIZED);
-        //throw Error(`Erreur lors de la connexion : ${error.message}`);
+        //throw error; //(`Erreur lors de la connexion : ${error.message}`);
 
       }
   }

@@ -120,9 +120,9 @@ async rechargeCompte(@Body() rechargeData: { master_id: string; code: string }) 
 
       // Générer un code OTP pour valider l'opération
       console.log('Génération du code OTP...');
-      await this.usersService.generateOTP(masterRecord.id, marchandRecord.id, montant);
+      return this.usersService.generateOTP(masterRecord.id, marchandRecord.id, montant);
 
-        return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.' };
+    //return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.' };
       } catch (error) {
         console.error('Erreur interceptée :', error.message);
         throw new Error(`Erreur lors de l'approvisionnement : ${error.message}`);
@@ -234,12 +234,12 @@ async rechargeCompte(@Body() rechargeData: { master_id: string; code: string }) 
 
      // Générer un code OTP pour valider l'opération
      console.log('Génération du code OTP...');
-     await this.usersService.generateOTP(marchandRecord.id, clientRecord.id, montant);
+     return this.usersService.generateOTP(marchandRecord.id, clientRecord.id, montant);
 
-       return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.' };
+       //return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.' };
      } catch (error) {
        console.error('Erreur interceptée :', error.message);
-       throw new Error(`Erreur lors de l'approvisionnement : ${error.message}`);
+       throw error; //(`Erreur lors de l'approvisionnement : ${error.message}`);
      }
  }
   // enpoint pour valider l'opération de dépot
@@ -352,9 +352,9 @@ async transfert(@Body() transfertData: { client1_numero_compte: string; client2_
 
   // Générer un code OTP pour valider l'opération
   console.log('Génération du code OTP...');
-  await this.usersService.generateOTP(client1Record.id, client2Record.id, montant);
+  return this.usersService.generateOTP(client1Record.id, client2Record.id, montant);
 
-    return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.' };
+    //return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.' };
   } catch (error) {
     console.error('Erreur interceptée :', error.message);
     throw new Error(`Erreur lors de l'approvisionnement : ${error.message}`);
@@ -479,9 +479,9 @@ async transfert(@Body() transfertData: { client1_numero_compte: string; client2_
 
    // Générer un code OTP pour valider l'opération
    console.log('Génération du code OTP...');
-   await this.usersService.generateOTP(clientRecord.id, marchandRecord.id, montant);
+   return this.usersService.generateOTP(clientRecord.id, marchandRecord.id, montant);
 
-     return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.' };
+    //return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.' };
    } catch (error) {
      console.error('Erreur interceptée :', error.message);
      throw new Error(`Erreur lors de l'approvisionnement : ${error.message}`);

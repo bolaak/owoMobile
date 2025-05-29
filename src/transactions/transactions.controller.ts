@@ -557,7 +557,7 @@ async exchangeBalance(@Body() exchangeData: { typeOperation: string; direction: 
 
    //endpoint permettant à un Client de payer un Marchand.
    @Post('payment')
-   @UseGuards(ClientGuard)
+   //@UseGuards(ClientGuard)
    async payment(@Body() approvisionnementData: { client_numero_compte: string; marchand_numero_compte: string; montant: number; motif: string; pin: string }) {
      const { client_numero_compte, marchand_numero_compte, montant, motif, pin } = approvisionnementData;
    
@@ -625,7 +625,7 @@ async exchangeBalance(@Body() exchangeData: { typeOperation: string; direction: 
  }
   // enpoint pour valider l'opération de dépot
   @Post('valider-payment')
-  @UseGuards(ClientGuard)
+  //@UseGuards(ClientGuard)
   async validerPayment(@Body() validationData: { client_numero_compte: string; marchand_numero_compte: string; montant: number; motif: string; otpCode: string}) {
     const { client_numero_compte, marchand_numero_compte, montant, motif, otpCode} = validationData;
 

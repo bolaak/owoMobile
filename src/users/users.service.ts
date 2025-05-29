@@ -1717,7 +1717,8 @@ async exchangeBalance(
       //const nouveauSoldeCompteSysteme = (compteSysteme.fields.solde || 0) + montant;
       await this.compteSystemeService.crediterCompteSysteme(compteSysteme.id, montant);
     }
-
+    console.log('Admin ID:', adminRecord.id, 'Type:', typeof adminRecord.id);
+    console.log('Compte système ID:', compteSysteme.id, 'Type:', typeof compteSysteme.id);
     // Créer une transaction pour tracer l'échange
     const description =
       direction === 'SYSTEM_TO_ADMIN'
@@ -1728,8 +1729,14 @@ async exchangeBalance(
       type_operation: 'EXCHANGE',
       montant,
       //date_transaction: new Date().toISOString(),
-      expediteur_id: direction === 'SYSTEM_TO_ADMIN' ? compteSysteme.id : adminRecord.id,
-      destinataire_id: direction === 'SYSTEM_TO_ADMIN' ? adminRecord.id : compteSysteme.id,
+      //compteCommission: direction === 'SYSTEM_TO_ADMIN' ? [compteSysteme.id] : [adminRecord.id],
+      //destinataire_id: direction === 'SYSTEM_TO_ADMIN' ? [adminRecord.id] : [compteSysteme.id],
+      // Dans tous les cas, compteCommission prend compteSysteme.id
+      compteCommission: [compteSysteme.id],
+      // Le destinataire/expéditeur dépend de la direction
+      ...(direction === 'SYSTEM_TO_ADMIN'
+        ? { destinataire_id: adminRecord.id }
+        : { expediteur_id: adminRecord.id }),
       description,
       status: 'SUCCESS',
     });
@@ -1737,6 +1744,7 @@ async exchangeBalance(
     const transactionId = transaction.id;
 
     console.log(`Échange de soldes effectué avec succès. ID opération:${transactionId}`);
+    return transactionId; 
   } catch (error) {
     console.error(`Erreur lors de l'échange de soldes : ${error.message}`);
     throw error;

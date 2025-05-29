@@ -551,7 +551,7 @@ async exchangeBalance(@Body() exchangeData: { typeOperation: string; direction: 
     return { message: 'Échange de soldes effectué avec succès.' };
   } catch (error) {
     console.error('Erreur lors de l\'échange de soldes :', error.message);
-    throw new Error(`Erreur lors de l'échange de soldes : ${error.message}`);
+    throw error; //(`Erreur lors de l'échange de soldes : ${error.message}`);
   }
 }
 

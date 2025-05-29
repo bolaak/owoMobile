@@ -42,12 +42,28 @@ export class TransactionsService {
   async createTransactionAppro(transactionData: any) {
     try {
       // Encapsuler expediteur_id et destinataire_id dans des tableaux
-      const formattedData = {
+      const formattedData: any = {
+        ...transactionData,
+      };
+
+      if (transactionData.expediteur_id !== undefined) {
+        formattedData.expediteur_id = Array.isArray(transactionData.expediteur_id)
+          ? transactionData.expediteur_id
+          : [transactionData.expediteur_id];
+      }
+
+      if (transactionData.destinataire_id !== undefined) {
+        formattedData.destinataire_id = Array.isArray(transactionData.destinataire_id)
+          ? transactionData.destinataire_id
+          : [transactionData.destinataire_id];
+      }
+      /*const formattedData = {
         ...transactionData,
         expediteur_id: [transactionData.expediteur_id],
         destinataire_id: [transactionData.destinataire_id],
-      };
-  
+      };*/
+      //console.log('Payload Airtable :', formattedData);
+
       const createdRecords = await this.base('Transactions').create([{ fields: formattedData }]);
       return { id: createdRecords[0].id, ...createdRecords[0].fields };
     } catch (error) {

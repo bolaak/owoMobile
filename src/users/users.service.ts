@@ -118,8 +118,8 @@ private readonly allowedFields = [
             tentatives_echec : 0,
             pays_id: [userData.pays_id], // Envoyez l'ID sous forme de tableau
             code_marchand: code_marchand, // Ajouter le code marchand uniquement pour les MASTERS
-            master_id: userData.master_id ? userData.master_id : undefined, // Envoyer master_id uniquement s'il est défini
-            master_associated: userData.master_associated ? userData.master_associated : undefined, // Envoyer master_associated uniquement s'il est défini
+            master_id: userData.master_id ? userData.master_id : '', // Envoyer master_id uniquement s'il est défini
+            master_associated: userData.master_associated ? userData.master_associated : '', // Envoyer master_associated uniquement s'il est défini
           },
         },
       ]);
@@ -1688,6 +1688,10 @@ async exchangeBalance(
     // Récupérer le compte système correspondant au type d'opération
     const compteSysteme = await this.compteSystemeService.getCompteSystemeByTypeOperation(typeOperation);
 
+    if (!['SYSTEM_TO_ADMIN', 'ADMIN_TO_SYSTEM'].includes(direction)) {
+    throw new Error(`Direction invalide : ${direction}. Elle doit être 'SYSTEM_TO_ADMIN' ou 'ADMIN_TO_SYSTEM'.`);
+    }
+
     // Valider que le solde du compte débiteur est suffisant
     if (direction === 'SYSTEM_TO_ADMIN') {
       if ((compteSysteme.fields.solde || 0) < montant) {
@@ -1719,6 +1723,25 @@ async exchangeBalance(
     }
     console.log('Admin ID:', adminRecord.id, 'Type:', typeof adminRecord.id);
     console.log('Compte système ID:', compteSysteme.id, 'Type:', typeof compteSysteme.id);
+    
+    const adminDeviseCode = adminRecord.devise_code?.[0] || 'XOF';
+
+    /*await this.mailService.sendDebitedEmailDepot(
+      adminRecord.email,
+      adminRecord.nom,
+      compteSysteme.typeOperation,
+      montant,
+      adminDeviseCode,
+      motif
+    );
+    await this.mailService.sendCreditedEmail(
+      marchandRecord.email,
+      marchandRecord.nom,
+      clientRecord.nom,
+      montant,
+      marchandDeviseCode,
+      motif
+    );*/
     // Créer une transaction pour tracer l'échange
     const description =
       direction === 'SYSTEM_TO_ADMIN'

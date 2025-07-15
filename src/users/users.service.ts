@@ -159,7 +159,7 @@ private readonly allowedFields = [
       return { numero_compte};
     } catch (error) {
       console.error('Erreur lors de la création de l\'utilisateur :', error.message, error.stack);
-      throw new Error('Erreur lors de la création de l\'utilisateur');
+      throw error;
     }
 }
 

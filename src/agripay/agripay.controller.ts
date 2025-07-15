@@ -15,7 +15,7 @@ export class AgripayController {
    private readonly otpService: OTPService,) {}
 
 @Post('initiate-agripay')
-@UseGuards(BusinessGuard)
+//@UseGuards(BusinessGuard)
 async initiateAgripay(
   @Body() agripayData: { business_numero_compte: string; orderId: string, motif: string, pin: string }
 ) {
@@ -94,7 +94,7 @@ async initiateAgripay(
 }
 
 @Post('validate-agripay')
-@UseGuards(BusinessGuard)
+//@UseGuards(BusinessGuard)
 async validateAgripay(@Body() validationData: { business_numero_compte: string; operationId: string; otpCode: string}) {
   const { business_numero_compte, operationId, otpCode } = validationData;
 

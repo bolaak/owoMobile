@@ -40,7 +40,7 @@ export class CodesRechargeService {
 
   // Créer un nouveau code de recharge
   async createCodeRecharge(codeData: any, files?: Express.Multer.File[]): Promise<any> {
-    const { montant, master_id} = codeData;
+    const { montant, master_id, motif} = codeData;
 
     // Validation et conversion explicite du montant
     if (typeof codeData.montant === 'string') {
@@ -76,7 +76,12 @@ export class CodesRechargeService {
     if (hasActiveCode) {
         throw new Error('Ce Master a un code de recharge actif.');
     }
-        // Gestion des images locales
+
+    if (!motif || motif.trim() === '') {
+      throw new Error('Le motif est obligatoire.');
+    }
+
+    // Gestion des images locales
     if (files && files.length > 0) {
       // Uploader chaque fichier vers GCS
       const uploadedImages = await Promise.all(
@@ -114,6 +119,7 @@ export class CodesRechargeService {
         {
           fields: {
             montant :codeData.montant,
+            motif,
             master_id: [master_id], // Encapsuler master_id dans un tableau
             code,
             status: 'Activated', // Initialisation du statut à Activated

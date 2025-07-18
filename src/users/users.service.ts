@@ -909,9 +909,9 @@ async getAllMasters() {
     console.log('Records récupérés :', records);
 
     const masters = records
-      .filter((record) => record.fields.type_utilisateur === 'MASTER')
+      .filter((record) => record.type_utilisateur === 'MASTER')
       .map((record) => {
-        const fields = record.fields;
+        const fields = record;
         delete fields.mot_de_passe;
         return { id: record.id, ...fields };
       });

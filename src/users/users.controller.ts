@@ -143,113 +143,113 @@ async changePassword( @User() user: any, @Body() body: ChangePasswordDto) {
     return this.usersService.getAllMasters();
   }
 
-// endpoint pour consulter le solde d'un utilisateur.
-@Post('consulter-solde')
-@UseGuards(AuthGuard)
-async consulterSolde(@Body() soldeData: { numero_compte: string; pin: string }) {
-  const { numero_compte, pin } = soldeData;
+  // endpoint pour consulter le solde d'un utilisateur.
+  @Post('consulter-solde')
+  @UseGuards(AuthGuard)
+  async consulterSolde(@Body() soldeData: { numero_compte: string; pin: string }) {
+    const { numero_compte, pin } = soldeData;
 
-  try {
-    console.log('Données reçues pour la consultation du solde :', soldeData);
+    try {
+      console.log('Données reçues pour la consultation du solde :', soldeData);
 
-    // Récupérer l'utilisateur par son numéro de compte
-    console.log('Récupération des données de l\'utilisateur...');
-    const userRecord = await this.usersService.getUserByNumeroCompte(numero_compte);
-    console.log('Utilisateur trouvé :', userRecord);
+      // Récupérer l'utilisateur par son numéro de compte
+      console.log('Récupération des données de l\'utilisateur...');
+      const userRecord = await this.usersService.getUserByNumeroCompte(numero_compte);
+      console.log('Utilisateur trouvé :', userRecord);
 
-        // Vérifier que le pays de l'utilsateur est "Activated"
-        console.log('Vérification du statut de l\'utilsateur...');
-        await this.usersService.checkCountryStatusForUser(userRecord.id);
-  
-        // Vérifier que le statut du Master est "Activated"
-        console.log('Vérification du statut de l\'utilsateur...');
-        await this.usersService.checkUserStatus(numero_compte);
+          // Vérifier que le pays de l'utilsateur est "Activated"
+          console.log('Vérification du statut de l\'utilsateur...');
+          await this.usersService.checkCountryStatusForUser(userRecord.id);
+    
+          // Vérifier que le statut du Master est "Activated"
+          console.log('Vérification du statut de l\'utilsateur...');
+          await this.usersService.checkUserStatus(numero_compte);
 
-    // Vérifier le code PIN
-    console.log('Validation du code PIN...');
-    await this.usersService.validatePIN(numero_compte, pin);
+      // Vérifier le code PIN
+      console.log('Validation du code PIN...');
+      await this.usersService.validatePIN(numero_compte, pin);
 
-    // Retourner le solde de l'utilisateur
-    const deviseCode = userRecord.devise_code || 'X0F'; // Récupérer la devise du pays
-    const solde = userRecord.solde || 0;
-    console.log(`Solde consulté pour le numéro de compte : ${numero_compte}, Solde : ${solde} ${deviseCode}`);
+      // Retourner le solde de l'utilisateur
+      const deviseCode = userRecord.devise_code || 'X0F'; // Récupérer la devise du pays
+      const solde = userRecord.solde || 0;
+      console.log(`Solde consulté pour le numéro de compte : ${numero_compte}, Solde : ${solde} ${deviseCode}`);
 
-    return { message: 'Consultation du solde réussie.', solde, deviseCode};
-  } catch (error) {
-    console.error('Erreur lors de la consultation du solde :', error.message);
-    throw new Error(`Erreur lors de la consultation du solde : ${error.message}`);
+      return { message: 'Consultation du solde réussie.', solde, deviseCode};
+    } catch (error) {
+      console.error('Erreur lors de la consultation du solde :', error.message);
+      throw new Error(`Erreur lors de la consultation du solde : ${error.message}`);
+    }
   }
-}
 
-// UsersInfo
-@Get('getUserInfos/:userId')
-@UseGuards(AuthGuard)
-async getUserInfos(@Param('userId') userId: string) {
-  try {
-    console.log(`Demande d'informations pour l'utilisateur ID : ${userId}`);
+  // UsersInfo
+  @Get('getUserInfos/:userId')
+  @UseGuards(AuthGuard)
+  async getUserInfos(@Param('userId') userId: string) {
+    try {
+      console.log(`Demande d'informations pour l'utilisateur ID : ${userId}`);
 
-    // Récupérer les informations de base de l'utilisateur
-    const userRecord = await this.usersService.getUserById(userId);
-    const userInfo = {
-      name: `${userRecord.prenom} ${userRecord.nom}`,
-      photo: userRecord.photo_url || null,
-      email: userRecord.email,
-      birthDate: userRecord.date_naissance,
-      status: userRecord.status,
-      pays: userRecord.nom_pays,
-      pays_status: userRecord.pays_status,
-      devise: userRecord.devise_code?.[0] || 'XOF',
-      code_pays: userRecord.code_pays?.[0] || '',
-      ville: userRecord.ville,
-      adresse: userRecord.adresse,
-      telephone: userRecord.telephone,
-      numero_compte: userRecord.numero_compte,
-      solde: userRecord.solde || 0,
-      type_utilisateur: userRecord.type_utilisateur,
-    };
+      // Récupérer les informations de base de l'utilisateur
+      const userRecord = await this.usersService.getUserById(userId);
+      const userInfo = {
+        name: `${userRecord.prenom} ${userRecord.nom}`,
+        photo: userRecord.photo_url || null,
+        email: userRecord.email,
+        birthDate: userRecord.date_naissance,
+        status: userRecord.status,
+        pays: userRecord.nom_pays,
+        pays_status: userRecord.pays_status,
+        devise: userRecord.devise_code?.[0] || 'XOF',
+        code_pays: userRecord.code_pays?.[0] || '',
+        ville: userRecord.ville,
+        adresse: userRecord.adresse,
+        telephone: userRecord.telephone,
+        numero_compte: userRecord.numero_compte,
+        solde: userRecord.solde || 0,
+        type_utilisateur: userRecord.type_utilisateur,
+      };
 
-    // Calculer le nombre de transactions
-    const transactionCount = await this.transactionsService.getTransactionCountForUser(userId);
+      // Calculer le nombre de transactions
+      const transactionCount = await this.transactionsService.getTransactionCountForUser(userId);
 
-    // Récupérer la dernière transaction
-    const lastTransaction = await this.transactionsService.getLastTransactionForUser(userId);
+      // Récupérer la dernière transaction
+      const lastTransaction = await this.transactionsService.getLastTransactionForUser(userId);
 
-    // Retourner les informations complètes
-    return {
-      ...userInfo,
-      nombre_transactions: transactionCount,
-      derniere_transaction: lastTransaction,
-    };
-  } catch (error) {
-    console.error(`Erreur lors de la récupération des informations de l'utilisateur : ${error.message}`);
-    throw new Error(`Erreur lors de la récupération des informations de l'utilisateur : ${error.message}`);
+      // Retourner les informations complètes
+      return {
+        ...userInfo,
+        nombre_transactions: transactionCount,
+        derniere_transaction: lastTransaction,
+      };
+    } catch (error) {
+      console.error(`Erreur lors de la récupération des informations de l'utilisateur : ${error.message}`);
+      throw new Error(`Erreur lors de la récupération des informations de l'utilisateur : ${error.message}`);
+    }
   }
-}
-// méthodes dans un contrôleur pour créer la route /account-statement/:userId
-@Get('statement/:userId')
-@UseGuards(AuthGuard)
-async getAccountStatement(@Param('userId') userId: string) {
-  try {
-    console.log(`Demande de relevé de compte pour l'utilisateur ID : ${userId}`);
+  // méthodes dans un contrôleur pour créer la route /account-statement/:userId
+  @Get('statement/:userId')
+  @UseGuards(AuthGuard)
+  async getAccountStatement(@Param('userId') userId: string) {
+    try {
+      console.log(`Demande de relevé de compte pour l'utilisateur ID : ${userId}`);
 
-    // Récupérer l'historique des transactions
-    const rawTransactions = await this.transactionsService.getTransactionHistory(userId);
+      // Récupérer l'historique des transactions
+      const rawTransactions = await this.transactionsService.getTransactionHistory(userId);
 
-    // Calculer le relevé de compte
-    const { statement, totalDebit, totalCredit, finalBalance } = this.transactionsService.calculateAccountStatement(rawTransactions, userId);
+      // Calculer le relevé de compte
+      const { statement, totalDebit, totalCredit, finalBalance } = this.transactionsService.calculateAccountStatement(rawTransactions, userId);
 
-    // Retourner le relevé de compte
-    return {
-      transactions: statement,
-      totalDebit,
-      totalCredit,
-      finalBalance,
-    };
-  } catch (error) {
-    console.error(`Erreur lors de la récupération du relevé de compte : ${error.message}`);
-    throw new Error(`Erreur lors de la récupération du relevé de compte : ${error.message}`);
+      // Retourner le relevé de compte
+      return {
+        transactions: statement,
+        totalDebit,
+        totalCredit,
+        finalBalance,
+      };
+    } catch (error) {
+      console.error(`Erreur lors de la récupération du relevé de compte : ${error.message}`);
+      throw new Error(`Erreur lors de la récupération du relevé de compte : ${error.message}`);
+    }
   }
-}
 
 /*@Get('statementType/:userId')
 @UseGuards(AuthGuard)

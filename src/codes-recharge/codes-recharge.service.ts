@@ -172,6 +172,36 @@ export class CodesRechargeService {
     if (updatedData.master_id) {
       await this.validateMasterId(updatedData.master_id);
     }
+    // Convertir master_id en tableau s’il est fourni
+    if (updatedData.master_id && typeof updatedData.master_id === 'string') {
+      updatedData.master_id = [updatedData.master_id];
+    }
+
+    // Validation : vérifier que le Master existe et est de type "MASTER"
+    /*await this.validateMasterId(updatedData.master_id);
+
+    // Validation : vérifier si le statut du pays du Master est "Activated"
+    const isCountryActivated = await this.isCountryActivated(updatedData.master_id);
+    if (!isCountryActivated) {
+        throw new Error('Le pays associé à ce Master n\'est pas activé.');
+    }
+    
+    // Validation : vérifier si le statut du Master est "Activated"
+    const isActivated = await this.isMasterActivated(updatedData.master_id);
+    if (!isActivated) {
+        throw new Error('Ce Master n\'est pas activé et ne peut pas recevoir de code de recharge.');
+    }
+      
+    // Validation : vérifier si le Master a déjà un code de recharge actif
+    const hasActiveCode = await this.hasActiveCode(updatedData.master_id);
+    if (hasActiveCode) {
+        throw new Error('Ce Master a un code de recharge actif.');
+    }*/
+
+        // Validation : vérifier que le montant est >= 1 000 000
+    if (updatedData.montant < 10000) {
+        throw new Error('Le montant doit être supérieur ou égal à 1 000 000.');
+    }
 
     // Gestion éventuelle des fichiers uploadés
     if (files && files.length > 0) {

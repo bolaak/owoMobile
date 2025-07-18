@@ -53,11 +53,32 @@ export class CodesRechargeController {
    }
 
   // Mettre à jour un code de recharge existant
-  @Put(':id')
+  /*@Put(':id')
   @UseGuards(AdminGuard)
   async updateCodeRecharge(@Param('id') id: string, @Body() updatedData: any) {
     return this.codesRechargeService.updateCodeRecharge(id, updatedData);
+  }*/
+  @Put(':id')
+  @UseGuards(AdminGuard)
+  @UsePipes(new ValidationPipe())
+  @UseInterceptors(
+    FilesInterceptor('attached', 5, {
+      storage: diskStorage({
+        destination: './uploads', // Stocker les fichiers temporairement
+        filename: (req, file, callback) => {
+          callback(null, `${Date.now()}-${file.originalname}`);
+        },
+      }),
+    })
+  )
+  async updateCodeRecharge(
+    @Param('id') id: string,
+    @Body() updatedData: any,
+    @UploadedFiles() files: Express.Multer.File[]
+  ) {
+    return this.codesRechargeService.updateCodeRecharge(id, updatedData, files);
   }
+
 
   // Supprimer un code de recharge
   @Delete(':id')

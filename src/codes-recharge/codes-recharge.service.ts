@@ -134,12 +134,17 @@ export class CodesRechargeService {
   }
 
   // Mettre à jour un code de recharge existant
-  async updateCodeRecharge(id: string, updatedData: any) {
-    const { master_id } = updatedData;
+  /*async updateCodeRecharge(id: string, updatedData: any) {
+    //const { master_id } = updatedData;
+
+    // Validation de base : updatedData doit être un objet
+    if (!updatedData || typeof updatedData !== 'object') {
+      throw new Error("Les données de mise à jour sont invalides ou absentes.");
+    }
   
     // Validation : vérifier que le Master existe et est de type "MASTER" si master_id est fourni
-    if (master_id) {
-      await this.validateMasterId(master_id);
+    if (updatedData.master_id) {
+      await this.validateMasterId(updatedData.master_id);
     }
   
     try {
@@ -148,7 +153,53 @@ export class CodesRechargeService {
     } catch (error) {
       throw error; //(`Erreur lors de la mise à jour du code de recharge : ${error.message}`);
     }
+  }*/
+  async updateCodeRecharge(id: string, updatedData: any, files?: Express.Multer.File[]) {
+    if (!updatedData || typeof updatedData !== 'object') {
+      throw new Error("Les données de mise à jour sont invalides.");
+    }
+
+    // Parser explicitement les champs envoyés sous forme de string si besoin
+    if (typeof updatedData.montant === 'string') {
+      const parsed = parseFloat(updatedData.montant);
+      if (isNaN(parsed)) {
+        throw new Error("Montant invalide.");
+      }
+      updatedData.montant = parsed;
+    }
+
+    // Vérifie master_id uniquement si fourni
+    if (updatedData.master_id) {
+      await this.validateMasterId(updatedData.master_id);
+    }
+
+    // Gestion éventuelle des fichiers uploadés
+    if (files && files.length > 0) {
+      const uploadedImages = await Promise.all(
+        files.map(async (file) => {
+          const publicUrl = await this.gcsService.uploadImage(file.path);
+          unlinkSync(file.path); // ou await fs.promises.unlink
+          return publicUrl;
+        })
+      );
+      updatedData.attached = uploadedImages.map(url => ({ url }));
+    } else if (updatedData.attached && typeof updatedData.attached === 'string') {
+      try {
+        // Si `attached` est passé en JSON string (depuis un formData par exemple)
+        updatedData.attached = JSON.parse(updatedData.attached);
+      } catch (e) {
+        updatedData.attached = [{ url: updatedData.attached }];
+      }
+    }
+
+    try {
+      await this.base('CodesRecharge').update(id, updatedData);
+      return { message: 'Code de recharge mis à jour avec succès.' };
+    } catch (error) {
+      throw new Error(`Erreur lors de la mise à jour du code de recharge : ${error.message}`);
+    }
   }
+
 
   // Supprimer un code de recharge
   async deleteCodeRecharge(id: string) {

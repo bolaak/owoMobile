@@ -17,6 +17,112 @@ export class AgripayController {
 @Post('initiate-agripay')
 //@UseGuards(BusinessGuard)
 async initiateAgripay(
+  @Body() agripayData: {
+    business_numero_compte: string;
+    orderId: string;
+    motif: string;
+    pin: string;
+  }
+) {
+  const { business_numero_compte, orderId, pin, motif } = agripayData;
+
+  try {
+    console.log(`🔄 Initialisation AGRIPAY pour orderId : ${orderId}`);
+
+    // 1. Vérification du statut de paiement
+    const orderPayment = await this.agripayService.getOrderFarmerPayment(orderId);
+    if (orderPayment.farmerPayment === 'PAID') {
+      throw new Error('❌ Cette commande a déjà été payée.');
+    }
+
+    // 2. Récupération des agriculteurs
+    const farmers = await this.agripayService.getOrderDetails(orderId);
+    if (!Array.isArray(farmers) || farmers.length === 0) {
+      throw new Error("❌ Aucun agriculteur trouvé dans la réponse de l'API.");
+    }
+
+    // 3. Filtrage et validation des comptes agriculteurs
+    const processedFarmers: { numCompte: string; montant: number }[] = [];
+
+    for (const farmer of farmers) {
+      try {
+        if (!farmer.compteOwo || !farmer.totalAmount) {
+          console.warn(`⚠️ Agriculteur ignoré : données manquantes (compteOwo ou totalAmount).`);
+          continue;
+        }
+
+        const farmerUser = await this.usersService.getUserByNumeroCompte(farmer.compteOwo);
+        if (!farmerUser) {
+          console.warn(`⚠️ Compte agriculteur introuvable : ${farmer.compteOwo}`);
+          continue;
+        }
+
+        // Validation facultative : s'assurer que l'utilisateur est bien un AGRICULTEUR
+        await this.usersService.validateUserType(farmerUser.id, 'CLIENT');
+
+        processedFarmers.push({
+          numCompte: farmer.compteOwo,
+          montant: farmer.totalAmount * 0.8, // Déduction de 20%
+        });
+      } catch (err) {
+        console.warn(`⚠️ Erreur sur le compte ${farmer.compteOwo} : ${err.message}`);
+        continue;
+      }
+    }
+
+    if (processedFarmers.length === 0) {
+      throw new Error("❌ Aucun agriculteur valide avec un compte reconnu.");
+    }
+
+    console.log(`✅ ${processedFarmers.length} agriculteur(s) valide(s) prêt(s) à être crédité(s).`);
+
+    // 4. Récupération et validation du compte Marchand
+    const marchandRecord = await this.usersService.getUserByNumeroCompte(business_numero_compte);
+    if (!marchandRecord) {
+      throw new Error(`❌ Compte marchand ${business_numero_compte} introuvable.`);
+    }
+
+    await this.usersService.validateUserType(marchandRecord.id, 'BUSINESS');
+    console.log('✅ Compte marchand validé.');
+
+    // 5. Calcul du montant total
+    const totalAmount = processedFarmers.reduce((sum, farmer) => sum + farmer.montant, 0);
+    if (isNaN(totalAmount) || totalAmount <= 0) {
+      throw new Error("❌ Le montant total calculé est invalide.");
+    }
+
+    console.log(`💰 Montant total à débiter : ${totalAmount} XOF`);
+
+    // 6. Validation du solde et du code PIN
+    await this.usersService.validateSolde(marchandRecord.id, totalAmount);
+    console.log('🔐 Vérification du code PIN du Marchand...');
+    await this.usersService.validatePIN(business_numero_compte, pin);
+
+    // 7. Génération de l’OTP pour validation finale
+    await this.usersService.generateAgripayOTP(
+      marchandRecord.id,
+      totalAmount,
+      orderId,
+      processedFarmers,
+      motif
+    );
+
+    // 8. Réponse succès
+    return {
+      message: '✅ OTP envoyé pour validation.',
+      totalAmount,
+      orderId,
+      farmers: processedFarmers,
+    };
+
+  } catch (error) {
+    console.error(`❌ Erreur AGRIPAY : ${error.message}`);
+    throw error;
+  }
+}
+
+
+/*async initiateAgripay(
   @Body() agripayData: { business_numero_compte: string; orderId: string, motif: string, pin: string }
 ) {
   const { business_numero_compte, orderId, pin, motif} = agripayData;
@@ -45,13 +151,10 @@ async initiateAgripay(
         throw new Error("Les données d'un agriculteur sont incomplètes (compteOwo ou totalAmount manquant).");
       }
       return {
-        numero_compte: farmer.compteOwo,
+        numCompte: farmer.compteOwo,
         montant: farmer.totalAmount * 0.8, // Appliquer une déduction de 20%
       };
     });
-
-    // Vérifier que les comptes à débiter et à créditer sont différents
-    //await this.usersService.validateDifferentAccounts(business_numero_compte, farmers.client_numero_compte);
    
        const marchandRecord = await this.usersService.getUserByNumeroCompte(business_numero_compte);
        console.log('Marchand_Business trouvé :', marchandRecord);
@@ -91,7 +194,7 @@ async initiateAgripay(
     console.error(`Erreur lors de l'initialisation de l'opération AGRIPAY : ${error.message}`);
     throw error; //(`Erreur lors de l'initialisation de l'opération AGRIPAY : ${error.message}`);
   }
-}
+}*/
 
 @Post('validate-agripay')
 //@UseGuards(BusinessGuard)
@@ -121,7 +224,7 @@ async validateAgripay(@Body() validationData: { business_numero_compte: string; 
 
     // Étape 5 : Enregistrer les transactions
     for (const farmer of farmers) {
-      const clientRecord = await this.usersService.getUserByNumeroCompte(farmer.numero_compte);
+      const clientRecord = await this.usersService.getUserByNumeroCompte(farmer.numCompte);
       console.log('Agriculteur trouvé :', farmer.numero_compte);
       await this.transactionsService.createTransactionAppro({
         type_operation: 'AGRIPAY',

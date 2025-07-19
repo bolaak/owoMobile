@@ -1268,7 +1268,7 @@ async creditSolde(userId: string, montant: number) {
     //return otpCode;
   }
   // Méthode pour générer un code OTP
-  async generateAgripayOTP(userId: string, montant: number, orderId: string, farmers: Array<{ numero_compte: string; montant: number }>, motif: string ): Promise<{ operationId: string, message: string }> {
+  async generateAgripayOTP(userId: string, montant: number, orderId: string, farmers: Array<{ numCompte: string; montant: number }>, motif: string ): Promise<{ operationId: string, message: string }> {
     //const otpCode = crypto.randomBytes(3).toString('hex').toUpperCase(); // Exemple : "A1B2C3"
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     const operationId = Math.floor(1000000000 + Math.random() * 9000000000).toString();
@@ -1875,12 +1875,12 @@ async debitBusinessAccount(businessNumeroCompte: string, amount: number, orderId
   }
 }
 // src/users/users.service.ts
-async creditClientAccounts(orderId: string, motif: string, clientAccounts: { numero_compte: string; montant: number }[]): Promise<void> {
+/*async creditClientAccounts(orderId: string, motif: string, clientAccounts: { numCompte: string; montant: number }[]): Promise<void> {
   try {
     console.log('Crédit des comptes CLIENT...');
 
     for (const client of clientAccounts) {
-      const clientRecord = await this.getUserByNumeroCompte(client.numero_compte);
+      const clientRecord = await this.getUserByNumeroCompte(client.numCompte);
 
       // Vérifier que le Client est de type "CLIENT"
        await this.validateUserType(clientRecord.id, 'CLIENT');
@@ -1890,7 +1890,7 @@ async creditClientAccounts(orderId: string, motif: string, clientAccounts: { num
       const newBalance = currentBalance + client.montant;
 
       await this.updateSolde(clientRecord.id, newBalance);
-      console.log(`Compte CLIENT trouvé crédité : ${client.numero_compte}, Nouveau solde = ${newBalance}`);
+      console.log(`Compte CLIENT trouvé crédité : ${client.numCompte}, Nouveau solde = ${newBalance}`);
 
       const clientDeviseCode = clientRecord.devise_code?.[0] || 'XOF';
       await this.mailService.sendCreditedEmailAgripay(
@@ -1906,7 +1906,57 @@ async creditClientAccounts(orderId: string, motif: string, clientAccounts: { num
     console.error(`Erreur lors du crédit des comptes CLIENT : ${error.message}`);
     throw error;
   }
+}*/
+async creditClientAccounts(orderId: string, motif: string, clientAccounts: { numCompte: string; montant: number }[]): Promise<void> {
+  console.log('Crédit des comptes CLIENT...');
+
+  for (const client of clientAccounts) {
+    try {
+      // Étape 1 : Récupération du client
+      const clientRecord = await this.getUserByNumeroCompte(client.numCompte);
+      if (!clientRecord) {
+        console.error(`❌ Client introuvable : ${client.numCompte}`);
+        continue; // Ne pas arrêter la boucle
+      }
+
+      // Étape 2 : Validation du type
+      await this.validateUserType(clientRecord.id, 'CLIENT');
+
+      // Étape 3 : Validation du montant
+      if (typeof client.montant !== 'number' || client.montant <= 0) {
+        console.error(`❌ Montant invalide pour ${client.numCompte} : ${client.montant}`);
+        continue;
+      }
+
+      // Étape 4 : Calcul du nouveau solde
+      const currentBalance = clientRecord.solde || 0;
+      const newBalance = currentBalance + client.montant;
+      await this.updateSolde(clientRecord.id, newBalance);
+
+      // Étape 5 : Notification
+      const devise = Array.isArray(clientRecord.devise_code)
+        ? clientRecord.devise_code[0]
+        : (clientRecord.devise_code || 'XOF');
+
+      await this.mailService.sendCreditedEmailAgripay(
+        clientRecord.email,
+        clientRecord.nom,
+        client.montant,
+        devise,
+        motif,
+        orderId
+      );
+
+      console.log(`✅ Crédité : ${client.numCompte} (+${client.montant} ${devise})`);
+    } catch (err) {
+      console.error(`❌ Erreur traitement client ${client.numCompte} : ${err.message}`);
+      // continue; (implicite)
+    }
+  }
+
+  console.log('✅ Traitement terminé pour tous les clients.');
 }
+
 
   //méthode pour effectuer un Paiement une fois que le code OTP est validé.
   async executerOperationAgripay(marchand_numero_compte: string, client_numero_compte: string, montant: number, motif: string) {

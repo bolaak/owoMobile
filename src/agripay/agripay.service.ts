@@ -5,7 +5,7 @@ import { Injectable, Logger } from '@nestjs/common';
 @Injectable()
 export class AgripayService {
     private readonly logger = new Logger(AgripayService.name);
-  private readonly API_URL = 'http://localhost:3001/orders/';
+  private readonly API_URL = 'https://owomobile-1c888c91ddc9.herokuapp.com/orders/';
 
   // Méthode pour récupérer les détails de la commande
   async getOrderDetails(orderId: string): Promise<any> {

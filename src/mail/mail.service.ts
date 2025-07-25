@@ -112,6 +112,23 @@ async sendDebitedEmail(debiteurEmail: string, debiteurNom: string, crediteurNom:
   await this.sendTransactionEmail(debiteurEmail, subject, body);
 }
 
+async sendDebitCompensation(debiteurEmail: string, debiteurNom: string, crediteurNom: string, montant: number, devise: string, motif: string, montantOp: number): Promise<void> {
+  const subject = 'Notification de débit de compte';
+  const body = `
+    Bonjour ${debiteurNom},
+
+    Votre compte a été débité de ${montant} ${devise}.
+    Détails de la transaction :
+    - Motif : ${motif}
+    - Destinataire : ${crediteurNom}
+    - Montant de l'opération : ${montantOp} ${devise}
+    
+
+    Merci d'avoir utilisé notre service.
+  `;
+  await this.sendTransactionEmail(debiteurEmail, subject, body);
+}
+
 async sendDebitedEmailDepot(debiteurEmail: string, debiteurNom: string, crediteurNom: string, montant: number, devise: string, motif: string): Promise<void> {
   const subject = 'Notification de débit de compte';
   const body = `
@@ -128,7 +145,7 @@ async sendDebitedEmailDepot(debiteurEmail: string, debiteurNom: string, crediteu
   await this.sendTransactionEmail(debiteurEmail, subject, body);
 }
 async sendDebitedEmailAgripay(debiteurEmail: string, debiteurNom: string, montant: number, devise: string, motif: string, orderId: string): Promise<void> {
-  const subject = 'AGRICONNECT-AYMENT';
+  const subject = 'AGRICONNECT-PAYMENT';
   const body = `
     Bonjour ${debiteurNom},
 

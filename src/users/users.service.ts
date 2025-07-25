@@ -1217,7 +1217,7 @@ async creditSolde(userId: string, montant: number) {
   
     if (otpRecords.length === 0) {
       //throw new Error('Code OTP invalide, déjà utilisé ou ne correspond pas à cette opération ou soit le montant est erroné ou le compte à débiter et/ou à créditer est erroné.');
-      throw new Error('Code OTP invalide ou déjà utilisé.');
+      throw new Error('Code OTP invalide ou déjà utilisé ou montant incorrect.');
 
     }
   
@@ -1267,7 +1267,8 @@ async creditSolde(userId: string, montant: number) {
     return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.', operationId};
     //return otpCode;
   }
-  // Méthode pour générer un code OTP
+
+  // Méthode pour générer un code OTP pour le paiement dans AGRICONNECT
   async generateAgripayOTP(userId: string, montant: number, orderId: string, farmers: Array<{ numCompte: string; montant: number }>, motif: string ): Promise<{ operationId: string, message: string }> {
     //const otpCode = crypto.randomBytes(3).toString('hex').toUpperCase(); // Exemple : "A1B2C3"
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -1507,7 +1508,7 @@ async creditSolde(userId: string, montant: number) {
       return {transaction_id: transactionId, nouveau_solde_marchand: newMarchandSolde, nouveau_solde_client: newClientSolde };
     } catch (error) {
       console.error('Erreur lors de l\'exécution de l\'opération :', error.message);
-      throw error; //(`Erreur lors de l'exécution de l'opération : ${error.message}`);
+      throw error;
     }
   }
 
@@ -1674,6 +1675,89 @@ async creditSolde(userId: string, montant: number) {
   }
 }
 
+//méthode pour exécuter l'opération de compensatioin Marchand une fois que le code OTP est validé.
+ async executerCompensationMarchand(marchand_numero_compte: string, master_numero_compte: string, montant: number, motif: string) {
+  try {
+    console.log('Début de l\'exécution de l\'opération...');
+
+    // Récupérer les enregistrements du Marchand et du master
+    const masterRecord = await this.getUserByNumeroCompte(master_numero_compte);
+    const marchandRecord = await this.getUserByNumeroCompte(marchand_numero_compte);
+
+      // Calculer les frais de transfert
+      /*const type_operation = 'COMPENSATION';
+      const fraisTransfert = await this.grilleTarifaireService.getFraisOperation(masterRecord.pays_id, type_operation, montant); // Récupérer les frais
+      const montantTotal = montant + fraisTransfert;*/
+
+    // Débiter le solde du master
+    console.log('Débit du solde du Marchand...');
+    const newMarchandSolde = (marchandRecord.solde || 0) - montant;
+    await this.updateSolde(marchandRecord.id, newMarchandSolde);
+
+    // Créditer le solde du Marchand
+    console.log('Crédit du solde du Master...');
+    const newMasterSolde = (masterRecord.solde || 0) + montant;
+    await this.updateSolde(masterRecord.id, newMasterSolde);
+
+    // Transférer les frais vers le compte de commissions
+    /*const compteSysteme = await this.compteSystemeService.getCompteSystemeByTypeOperation('RETRAIT');
+    await this.compteSystemeService.crediterCompteSysteme(compteSysteme.id, fraisTransfert);*/
+
+  // Envoi des e-mails
+  const marchandDeviseCode = marchandRecord.devise_code?.[0] || 'XOF';
+  const masterDeviseCode = masterRecord.devise_code?.[0] || 'XOF';
+  //const montantOp;
+
+
+  await this.mailService.sendDebitCompensation(
+    marchandRecord.email,
+    marchandRecord.nom,
+    masterRecord.nom,
+    montant,
+    marchandDeviseCode,
+    motif,
+    montant,
+    //fraisTransfert
+  );
+
+  await this.mailService.sendCreditedEmail(
+    marchandRecord.email,
+    marchandRecord.nom,
+    masterRecord.nom,
+    montant,
+    masterDeviseCode,
+    motif
+  );
+
+    // Créer la transaction
+    console.log('Création de la transaction...');
+    const deviseCode = masterRecord.devise_code?.[0] || 'XOF'; // Récupérer la devise du pays 
+    const description = `Opération de compensation Marchand . Marchand(${marchand_numero_compte}) => Master(${master_numero_compte}) de ${montant} ${deviseCode}.`;
+    const transaction = await this.transactionsService.createTransactionAppro({
+      type_operation: 'COMPENSATION',
+      montant,
+      //date_transaction: new Date().toISOString(),
+      expediteur_id: masterRecord.id,
+      destinataire_id: marchandRecord.id,
+      description,
+      motif,
+      //frais : fraisTransfert,
+      status: 'SUCCESS',
+    });
+
+    // Partager les commissions
+    /*await this.shareCommissions(type_operation, masterRecord.pays_id, fraisTransfert, marchand_numero_compte, compteSysteme);
+    // Récupérer l'ID de la transaction créée*/
+    const transactionId = transaction.id;
+
+    console.log('Opération exécutée avec succès.');
+    return {transaction_id: transactionId, nouveau_solde_master: newMasterSolde, nouveau_solde_marchand: newMarchandSolde};
+  } catch (error) {
+    console.error('Erreur lors de l\'exécution de l\'opération :', error.message);
+    throw error;
+  }
+}
+
 async exchangeBalance(
   typeOperation: string,
   direction: 'SYSTEM_TO_ADMIN' | 'ADMIN_TO_SYSTEM',
@@ -1742,6 +1826,7 @@ async exchangeBalance(
       marchandDeviseCode,
       motif
     );*/
+
     // Créer une transaction pour tracer l'échange
     const description =
       direction === 'SYSTEM_TO_ADMIN'
@@ -1751,9 +1836,7 @@ async exchangeBalance(
     const transaction = await this.transactionsService.createTransactionAppro({
       type_operation: 'EXCHANGE',
       montant,
-      //date_transaction: new Date().toISOString(),
-      //compteCommission: direction === 'SYSTEM_TO_ADMIN' ? [compteSysteme.id] : [adminRecord.id],
-      //destinataire_id: direction === 'SYSTEM_TO_ADMIN' ? [adminRecord.id] : [compteSysteme.id],
+
       // Dans tous les cas, compteCommission prend compteSysteme.id
       compteCommission: [compteSysteme.id],
       // Le destinataire/expéditeur dépend de la direction

@@ -60,6 +60,10 @@ async initiateAgripay(
         // Validation facultative : s'assurer que l'utilisateur est bien un AGRICULTEUR
         await this.usersService.validateUserType(farmerUser.id, 'CLIENT');
 
+       // Vérifier que le statut du Client est "Activated"
+       /*console.log('Vérification du statut du Client...');
+       await this.usersService.checkUserStatus(farmer.compteOwo);*/
+
         processedFarmers.push({
           numCompte: farmer.compteOwo,
           montant: farmer.totalAmount * 0.8, // Déduction de 20%
@@ -120,81 +124,6 @@ async initiateAgripay(
     throw error;
   }
 }
-
-
-/*async initiateAgripay(
-  @Body() agripayData: { business_numero_compte: string; orderId: string, motif: string, pin: string }
-) {
-  const { business_numero_compte, orderId, pin, motif} = agripayData;
-
-  try {
-    console.log(`Demande d'initialisation de l'opération AGRIPAY pour orderId : ${orderId}`);
-    // Récupération des détails complets
-    const orderPayment = await this.agripayService.getOrderFarmerPayment(orderId);
-
-    // Vérification supplémentaire du statut (redondante mais sécurisée)
-    if (orderPayment.farmerPayment === 'PAID') {
-      throw new Error('Cette commande a déjà été payée');
-    }
-
-    // Étape 1 : Récupérer les détails de la commande
-    const farmers = await this.agripayService.getOrderDetails(orderId);
-
-    // Vérifier que les données des agriculteurs sont valides
-    if (!Array.isArray(farmers) || farmers.length === 0) {
-      throw new Error("Aucun agriculteur trouvé dans la réponse de l'API.");
-    }
-
-    // Extraire les informations nécessaires
-    const processedFarmers = farmers.map((farmer: any) => {
-      if (!farmer.compteOwo || !farmer.totalAmount) {
-        throw new Error("Les données d'un agriculteur sont incomplètes (compteOwo ou totalAmount manquant).");
-      }
-      return {
-        numCompte: farmer.compteOwo,
-        montant: farmer.totalAmount * 0.8, // Appliquer une déduction de 20%
-      };
-    });
-   
-       const marchandRecord = await this.usersService.getUserByNumeroCompte(business_numero_compte);
-       console.log('Marchand_Business trouvé :', marchandRecord);
-   
-       // Vérifier que le Marchand est de type "BUSINESS"
-       console.log('Vérification du type utilisateur (Marchand_Business)...');
-       await this.usersService.validateUserType(marchandRecord.id, 'BUSINESS');
-
-    // Calculer le montant total à débiter
-    const totalAmount = processedFarmers.reduce((sum: number, farmer) => sum + farmer.montant, 0);
-    console.log('Montant total calculé :', totalAmount); // Afficher le montant total calculé
-
-    // Vérifier que totalAmount est un nombre valide
-    if (isNaN(totalAmount) || totalAmount <= 0) {
-      throw new Error("Le montant total calculé est invalide.");
-    }
-
-    // Étape 2 : Valider le solde du compte EBUSINESS
-    await this.usersService.validateSolde(marchandRecord.id, totalAmount);
-
-    // Vérifier le code PIN du Client
-    console.log('Vérification du code PIN du Marchand_business...');
-    await this.usersService.validatePIN(business_numero_compte, pin);
-
-    // Étape 3 : Envoyer un OTP pour validation
-    await this.usersService.generateAgripayOTP(marchandRecord.id, totalAmount, orderId, processedFarmers, motif);
-
-    // Retourner les informations nécessaires pour la validation
-    return {
-      message: 'OTP envoyé pour validation..',
-      //operationId,
-      totalAmount,
-      orderId,
-      farmers: processedFarmers,
-    };
-  } catch (error) {
-    console.error(`Erreur lors de l'initialisation de l'opération AGRIPAY : ${error.message}`);
-    throw error; //(`Erreur lors de l'initialisation de l'opération AGRIPAY : ${error.message}`);
-  }
-}*/
 
 @Post('validate-agripay')
 //@UseGuards(BusinessGuard)

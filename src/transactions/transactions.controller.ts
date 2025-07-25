@@ -1,5 +1,5 @@
 // src/transactions/transactions.controller.ts
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
 import { MasterGuard } from '../auth/master.guard';
 import { AdminGuard } from '../auth/admin.guard';
 import { MarchandGuard } from '../auth/marchand.guard';
@@ -19,9 +19,15 @@ export class TransactionsController {
     private readonly transactionsService: TransactionsService,
   ) {}
 
+    @Get()
+    @UseGuards(AdminGuard)
+    async getAllTransaction() {
+      return this.transactionsService.getAllTransaction();
+    }
+
   // Endpoint pour recharger le compte d'un Master avec un code de recharge
   @Post('recharge')
-@UseGuards(MasterGuard)
+  @UseGuards(MasterGuard)
 async rechargeCompte(@Body() rechargeData: { master_id: string; code: string }) {
   const { master_id, code } = rechargeData;
 
@@ -56,7 +62,7 @@ async rechargeCompte(@Body() rechargeData: { master_id: string; code: string }) 
 
     return { message: 'Rechargement effectué avec succès.', nouveau_solde: solde };
   } catch (error) {
-    throw new Error(`Erreur lors du rechargement : ${error.message}`);
+    throw error;
   }
 }  
    //endpoint permettant à un Master d'approvisionner le compte d'un Marchand.
@@ -110,6 +116,7 @@ async rechargeCompte(@Body() rechargeData: { master_id: string; code: string }) 
             console.log('Ce Marchand n/est pas rattaché à ce Master.');
             throw new Error("Ce Marchand n'est pas rattaché à ce Master.");
           }
+
         // Vérifier que le solde du Master est suffisant
         console.log('Vérification du solde du Master...');
         await this.usersService.validateSolde(masterRecord.id, montant);
@@ -125,7 +132,7 @@ async rechargeCompte(@Body() rechargeData: { master_id: string; code: string }) 
     //return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.' };
       } catch (error) {
         console.error('Erreur interceptée :', error.message);
-        throw new Error(`Erreur lors de l'approvisionnement : ${error.message}`);
+        throw error;
       }
   }
   // enpoint pour valider l'opération d'approvisionnement
@@ -172,7 +179,7 @@ async rechargeCompte(@Body() rechargeData: { master_id: string; code: string }) 
 
   } catch (error) {
     console.error('Erreur lors de la validation ou de l\'exécution de l\'opération :', error.message);
-    throw new Error(`Erreur lors de la validation ou de l'exécution de l'opération : ${error.message}`);
+    throw error;
   }
 }
 
@@ -239,7 +246,7 @@ async rechargeCompte(@Body() rechargeData: { master_id: string; code: string }) 
        //return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.' };
      } catch (error) {
        console.error('Erreur interceptée :', error.message);
-       throw error; //(`Erreur lors de l'approvisionnement : ${error.message}`);
+       throw error;;
      }
  }
   // enpoint pour valider l'opération de dépot
@@ -286,7 +293,7 @@ async rechargeCompte(@Body() rechargeData: { master_id: string; code: string }) 
 
   } catch (error) {
     console.error('Erreur lors de la validation ou de l\'exécution de l\'opération :', error.message);
-    throw new Error(`Erreur lors de la validation ou de l'exécution de l'opération : ${error.message}`);
+    throw error;
   }
 }
 
@@ -357,7 +364,7 @@ async transfert(@Body() transfertData: { client1_numero_compte: string; client2_
     //return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.' };
   } catch (error) {
     console.error('Erreur interceptée :', error.message);
-    throw new Error(`Erreur lors de l'approvisionnement : ${error.message}`);
+    throw error;
   }
 }
 
@@ -411,7 +418,7 @@ async transfert(@Body() transfertData: { client1_numero_compte: string; client2_
 
   } catch (error) {
     console.error('Erreur lors de la validation ou de l\'exécution de l\'opération :', error.message);
-    throw new Error(`Erreur lors de la validation ou de l'exécution de l'opération : ${error.message}`);
+    throw error;
   }
 }
 
@@ -484,7 +491,7 @@ async transfert(@Body() transfertData: { client1_numero_compte: string; client2_
     //return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.' };
    } catch (error) {
      console.error('Erreur interceptée :', error.message);
-     throw new Error(`Erreur lors de l'approvisionnement : ${error.message}`);
+     throw error;
    }
 }
 
@@ -532,7 +539,7 @@ async transfert(@Body() transfertData: { client1_numero_compte: string; client2_
 
   } catch (error) {
     console.error('Erreur lors de la validation ou de l\'exécution de l\'opération :', error.message);
-    throw new Error(`Erreur lors de la validation ou de l'exécution de l'opération : ${error.message}`);
+    throw error;
   }
 }
 
@@ -551,7 +558,7 @@ async exchangeBalance(@Body() exchangeData: { typeOperation: string; direction: 
     return { message: 'Échange de soldes effectué avec succès.' };
   } catch (error) {
     console.error('Erreur lors de l\'échange de soldes :', error.message);
-    throw error; //(`Erreur lors de l'échange de soldes : ${error.message}`);
+    throw error;
   }
 }
 
@@ -620,7 +627,7 @@ async exchangeBalance(@Body() exchangeData: { typeOperation: string; direction: 
        //return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.' };
      } catch (error) {
        console.error('Erreur interceptée :', error.message);
-       throw new Error(`Erreur lors du paiement : ${error.message}`);
+       throw error;
      }
  }
   // enpoint pour valider l'opération de dépot
@@ -667,7 +674,7 @@ async exchangeBalance(@Body() exchangeData: { typeOperation: string; direction: 
 
   } catch (error) {
     console.error('Erreur lors de la validation ou de l\'exécution de l\'opération :', error.message);
-    throw error; //(`Erreur lors de la validation ou de l'exécution de l'opération : ${error.message}`);
+    throw error;
   }
 }
 
@@ -686,7 +693,137 @@ async regenerateOTP(@Body() otpData: { operationId: string }) {
     return { message: 'Nouveau code OTP généré avec succès.', ...result };
   } catch (error) {
     console.error('Erreur lors de la régénération du code OTP :', error.message);
-    throw new Error(`Erreur lors de la régénération du code OTP : ${error.message}`);
+    throw error;
+  }
+}
+
+ //endpoint permettant à un Marchand d'effectuer un retarit auprès d'un Master. 
+@Post('compensationMarchand')
+ @UseGuards(MasterGuard)
+ async retraitMarchand(@Body() approvisionnementData: { marchand_numero_compte: string; master_numero_compte: string; montant: number; pin: string }) {
+   const { marchand_numero_compte, master_numero_compte, montant, pin } = approvisionnementData;
+ 
+   try {
+     console.log('Données reçues :', approvisionnementData);
+
+  // Vérifier que les comptes à débiter et à créditer sont différents
+  await this.usersService.validateDifferentAccounts(marchand_numero_compte, master_numero_compte);
+
+     // Récupérer les enregistrements du Marchand et du master
+     console.log('Récupération des données du Master...');
+     const masterRecord = await this.usersService.getUserByNumeroCompte(master_numero_compte);
+     console.log('Master trouvé :', masterRecord);
+ 
+     console.log('Récupération des données du Marchand...');
+     const marchandRecord = await this.usersService.getUserByNumeroCompte(marchand_numero_compte);
+     console.log('Marchand trouvé :', marchandRecord);
+
+    // Vérifier que les deux comptes sont du même pays
+    await this.usersService.validateSameCountry(marchand_numero_compte, master_numero_compte);
+
+     // Vérifier que le master est de type "master"
+     console.log('Vérification du type utilisateur (master)...');
+     await this.usersService.validateUserType(masterRecord.id, 'MASTER');
+ 
+     // Vérifier que le Marchand est de type "MARCHAND"
+     console.log('Vérification du type utilisateur (Marchand)...');
+     await this.usersService.validateUserType(marchandRecord.id, 'MARCHAND');
+
+     // Vérifier que le pays du master est "Activated"
+     console.log('Vérification du statut du master...');
+     await this.usersService.checkCountryStatusForUser(masterRecord.id);
+
+     // Vérifier que le statut du master est "Activated"
+     console.log('Vérification du statut du master...');
+     await this.usersService.checkUserStatus(master_numero_compte);
+
+     // Vérifier que le pays du Marchand est "Activated"
+     console.log('Vérification du statut du Marchand...');
+     await this.usersService.checkCountryStatusForMarchand(marchandRecord.id);
+
+     // Vérifier que le statut du Marchand est "Activated"
+     console.log('Vérification du statut du Marchand...');
+     await this.usersService.checkUserStatusMarchand(marchand_numero_compte);
+
+    // Calculer les frais de transfert
+    /*const pays_id = masterRecord.pays_id?.[0]; // Récupérer l'ID du pays du master 1
+    const type_operation = 'RETRAIT';
+    const fraisTransfert = await this.grilleTarifaireService.getFraisOperation(pays_id, type_operation, montant); // Récupérer les frais
+    const montantTotal = montant + fraisTransfert;*/
+
+    // Vérifier que le Marchand est rattaché au Master
+      console.log('Vérification du rattachement Master-Marchand...');
+      const marchandsDuMaster = await this.usersService.getMarchandsByMaster(masterRecord.id);
+      const isMarchandRattache = marchandsDuMaster.some((marchand) => marchand.id === marchandRecord.id);
+      
+      if (!isMarchandRattache) {
+        console.log("Ce Marchand n'est pas rattaché à ce Master.");
+        throw new Error("Ce Marchand n'est pas rattaché à ce Master.");
+      }
+
+     // Vérifier que le solde du Marchand est suffisant
+     console.log('Vérification du solde du Marchand...');
+     await this.usersService.validateSolde(marchandRecord.id, montant);
+ 
+     // Vérifier le code PIN du Marchand
+     console.log('Vérification du code PIN du Marchand...');
+     await this.usersService.validatePIN(marchand_numero_compte, pin);
+
+   // Générer un code OTP pour valider l'opération
+   console.log('Génération du code OTP...');
+   return this.usersService.generateOTP(marchandRecord.id, masterRecord.id, montant);
+
+    //return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.' };
+   } catch (error) {
+     console.error('Erreur interceptée :', error.message);
+     throw error;
+   }
+}
+ // enpoint pour valider l'opération de retrait
+  @Post('valider-compensationMarchand')
+  @UseGuards(MasterGuard)
+  async validerRetraitMarchand(@Body() validationData: { master_numero_compte: string; marchand_numero_compte: string; montant: number; motif: string; otpCode: string }) {
+    const { master_numero_compte, marchand_numero_compte, montant, motif, otpCode } = validationData;
+
+  try {
+    console.log('Données reçues pour la validation :', validationData);
+
+    // Récupérer l'utilisateur Master 
+    console.log('Récupération des données du Master ...');
+    const masterRecord = await this.usersService.getUserByNumeroCompte(master_numero_compte);
+    console.log('master trouvé :', masterRecord);
+
+    // Vérifier que le statut du master est "Activated"
+    console.log('Vérification du statut du Master...');
+    await this.usersService.checkUserStatus(master_numero_compte);
+
+    // Récupérer l'utilisateur Marchand
+    console.log('Récupération des données du Marchand...');
+    const marchandRecord = await this.usersService.getUserByNumeroCompte(marchand_numero_compte);
+    console.log('Marchand trouvé :', marchandRecord);
+
+    // Vérifier que le statut du Marchand est "Activated"
+    console.log('Vérification du statut du Marchand...');
+    await this.usersService.checkUserStatus(marchand_numero_compte);
+
+    // Valider le code OTP
+    console.log('Validation du code OTP...');
+    await this.usersService.validateOTP(marchandRecord.id, masterRecord.id, otpCode, montant);
+
+      console.log('Exécution de l\'opération...');
+      const resultat = await this.usersService.executerCompensationMarchand(
+        master_numero_compte,
+        marchand_numero_compte,
+        montant,
+        motif
+      );
+
+    //return { message: 'Validation réussie. L\'opération peut être exécutée.' };
+    return { message: 'Opération exécutée avec succès.', ...resultat };
+
+  } catch (error) {
+    console.error('Erreur lors de la validation ou de l\'exécution de l\'opération :', error.message);
+    throw error;
   }
 }
 }

@@ -15,7 +15,12 @@ export class TransactionsService {
     Airtable.configure({ apiKey: Config.AIRTABLE_API_KEY });
     this.base = Airtable.base(Config.AIRTABLE_BASE_ID);
   }
-
+  // Récupérer toutes les transactions
+    async getAllTransaction() {
+    const records = await this.base('Transactions').select().all();
+    return records.map((record) => ({ id: record.id, ...record.fields }));
+    
+  }
   // Créer une nouvelle transaction
   async createTransaction(transactionData: any) {
     try {
@@ -165,164 +170,136 @@ export class TransactionsService {
       throw error;
     }
   }
-  // Méthode pour récupérer toutes les transactions impliquant un utilisateur donné.
-/*async getTransactionHistory(userId: string): Promise<any[]> {
-  try {
-    console.log(`Récupération de l'historique des transactions pour l'utilisateur ID : ${userId}`);
 
-    const transactions = await this.base('Transactions')
-      .select({
-        filterByFormula: `OR({expediteur_id} = '${userId}', {destinataire_id} = '${userId}', {utilisateur_id} = '${userId}')`,
-        sort: [{ field: 'date_transaction', direction: 'asc' }], // Tri par date croissante
-      })
-      .all();
+  // src/transactions/transactions.service.ts
+  async getTransactionHistory(userId: string): Promise<any[]> {
+    try {
+      console.log(`Récupération de l'historique des transactions pour l'utilisateur ID : ${userId}`);
 
-    return transactions.map((record) => ({
-      id: record.id,
-      date: record.fields.date_transaction,
-      type_operation: record.fields.type_operation,
-      description: record.fields.description || '',
-      motif: record.fields.motif,
-      montant: record.fields.montant,
-      frais: record.fields.frais,
-      expediteur_id: record.fields.expediteur_id?.[0],
-      destinataire_id: record.fields.destinataire_id?.[0],
-      utilisateur_id: record.fields.utilisateur_id?.[0],
-    }));
-  } catch (error) {
-    console.error(`Erreur lors de la récupération de l'historique des transactions : ${error.message}`);
-    throw error;
-  }
-}*/
-// src/transactions/transactions.service.ts
-async getTransactionHistory(userId: string): Promise<any[]> {
-  try {
-    console.log(`Récupération de l'historique des transactions pour l'utilisateur ID : ${userId}`);
+      const transactions = await this.base('Transactions')
+        .select({
+          filterByFormula: `OR({expediteur_id} = '${userId}', {destinataire_id} = '${userId}', {utilisateur_id} = '${userId}', {compteCommission} = '${userId}')`,
+          sort: [{ field: 'date_transaction', direction: 'asc' }], // Tri par date croissante
+        })
+        .all();
 
-    const transactions = await this.base('Transactions')
-      .select({
-        filterByFormula: `OR({expediteur_id} = '${userId}', {destinataire_id} = '${userId}', {utilisateur_id} = '${userId}', {compteCommission} = '${userId}')`,
-        sort: [{ field: 'date_transaction', direction: 'asc' }], // Tri par date croissante
-      })
-      .all();
+      return transactions.map((record) => {
+        const isDebit = record.fields.expediteur_id?.[0] || record.fields.compteCommission?.[0] === userId;
+        const isCredit = record.fields.destinataire_id?.[0] || record.fields.utilisateur_id?.[0] === userId;
 
-    return transactions.map((record) => {
-      const isDebit = record.fields.expediteur_id?.[0] || record.fields.compteCommission?.[0] === userId;
-      const isCredit = record.fields.destinataire_id?.[0] || record.fields.utilisateur_id?.[0] === userId;
+        // Sélectionner la description en fonction du sens de l'opération
+        const description = isDebit
+          ? record.fields.exp_desc || 'Aucune description disponible'
+          : isCredit
+          ? record.fields.dest_desc || 'Aucune description disponible'
+          : 'Description inconnue';
 
-      // Sélectionner la description en fonction du rôle de l'utilisateur
-      const description = isDebit
-        ? record.fields.exp_desc || 'Aucune description disponible'
-        : isCredit
-        ? record.fields.dest_desc || 'Aucune description disponible'
-        : 'Description inconnue';
-
-      return {
-        id: record.id,
-        date: record.fields.date_transaction,
-        type_operation: record.fields.type_operation,
-        description, // Description dynamique
-        motif: record.fields.motif,
-        montant: record.fields.montant,
-        frais: record.fields.frais,        
-        expediteur_id: record.fields.expediteur_id?.[0],
-        destinataire_id: record.fields.destinataire_id?.[0],
-        utilisateur_id: record.fields.utilisateur_id?.[0],
-        compteCommission: record.fields.compteCommission?.[0],
+        return {
+          id: record.id,
+          date: record.fields.date_transaction,
+          type_operation: record.fields.type_operation,
+          description, // Description dynamique
+          motif: record.fields.motif,
+          montant: record.fields.montant,
+          frais: record.fields.frais,        
+          expediteur_id: record.fields.expediteur_id?.[0],
+          destinataire_id: record.fields.destinataire_id?.[0],
+          utilisateur_id: record.fields.utilisateur_id?.[0],
+          compteCommission: record.fields.compteCommission?.[0],
 
 
-      };
-    });
-  } catch (error) {
-    console.error(`Erreur lors de la récupération de l'historique des transactions : ${error.message}`);
-    throw error;
-  }
-}
-
-// src/transactions/transactions.service.ts
-async getTransactionHistoryType(userId: string, type_operation: string): Promise<any[]> {
-  try {
-    console.log(`Récupération de l'historique des transactions pour l'utilisateur ID : ${userId}`);
-
-    const transactions = await this.base('Transactions')
-      .select({
-        filterByFormula: `{type_operation} = '${type_operation}', OR({expediteur_id} = '${userId}', {destinataire_id} = '${userId}', {utilisateur_id} = '${userId}', {compteCommission} = '${userId}')`,
-        sort: [{ field: 'date_transaction', direction: 'asc' }], // Tri par date croissante
-      })
-      .all();
-
-    return transactions.map((record) => {
-      const isDebit = record.fields.expediteur_id?.[0] === userId;
-      const isCredit = record.fields.destinataire_id?.[0] === userId;
-
-      // Sélectionner la description en fonction du rôle de l'utilisateur
-      const description = isDebit
-        ? record.fields.exp_desc || 'Aucune description disponible'
-        : isCredit
-        ? record.fields.dest_desc || 'Aucune description disponible'
-        : 'Description inconnue';
-
-      return {
-        id: record.id,
-        date: record.fields.date_transaction,
-        type_operation: record.fields.type_operation,
-        description, // Description dynamique 
-        motif: record.fields.motif,
-        montant: record.fields.montant,
-        frais: record.fields.frais,        
-        expediteur_id: record.fields.expediteur_id?.[0],
-        destinataire_id: record.fields.destinataire_id?.[0],
-        utilisateur_id: record.fields.utilisateur_id?.[0],
-        compteCommission: record.fields.compteCommission?.[0],
-
-      };
-    });
-  } catch (error) {
-    console.error(`Erreur lors de la récupération de l'historique des transactions : ${error.message}`);
-    throw error;
-  }
-}
-
-// Méthode pour traiter les données récupérées et calculer le solde progressif, ainsi que les totaux des débits et des crédits.
-calculateAccountStatement(transactions: any[], userId: string): any {
-  let balance = 0; // Solde initial
-  let totalDebit = 0; // Total des débits
-  let totalCredit = 0; // Total des crédits
-
-  const statement = transactions.map((transaction) => {
-    const isDebit = transaction.expediteur_id === userId || transaction.compteCommission === userId;
-    const isCredit = transaction.destinataire_id === userId || transaction.utilisateur_id === userId ;
-
-    let amount = 0;
-    if (isDebit) {
-      amount = -transaction.montant; 
-      totalDebit += transaction.montant;
-    } else if (isCredit) {
-      amount = transaction.montant; 
-      totalCredit += transaction.montant;
+        };
+      });
+    } catch (error) {
+      console.error(`Erreur lors de la récupération de l'historique des transactions : ${error.message}`);
+      throw error;
     }
+  }
 
-    balance += amount; // Mise à jour du solde progressif
+  // src/transactions/transactions.service.ts
+  async getTransactionHistoryType(userId: string, type_operation: string): Promise<any[]> {
+    try {
+      console.log(`Récupération de l'historique des transactions pour l'utilisateur ID : ${userId}`);
 
+      const transactions = await this.base('Transactions')
+        .select({
+          filterByFormula: `{type_operation} = '${type_operation}', OR({expediteur_id} = '${userId}', {destinataire_id} = '${userId}', {utilisateur_id} = '${userId}', {compteCommission} = '${userId}')`,
+          sort: [{ field: 'date_transaction', direction: 'asc' }], // Tri par date croissante
+        })
+        .all();
+
+      return transactions.map((record) => {
+        const isDebit = record.fields.expediteur_id?.[0] === userId;
+        const isCredit = record.fields.destinataire_id?.[0] === userId;
+
+        // Sélectionner la description en fonction du rôle de l'utilisateur
+        const description = isDebit
+          ? record.fields.exp_desc || 'Aucune description disponible'
+          : isCredit
+          ? record.fields.dest_desc || 'Aucune description disponible'
+          : 'Description inconnue';
+
+        return {
+          id: record.id,
+          date: record.fields.date_transaction,
+          type_operation: record.fields.type_operation,
+          description, // Description dynamique 
+          motif: record.fields.motif,
+          montant: record.fields.montant,
+          frais: record.fields.frais,        
+          expediteur_id: record.fields.expediteur_id?.[0],
+          destinataire_id: record.fields.destinataire_id?.[0],
+          utilisateur_id: record.fields.utilisateur_id?.[0],
+          compteCommission: record.fields.compteCommission?.[0],
+
+        };
+      });
+    } catch (error) {
+      console.error(`Erreur lors de la récupération de l'historique des transactions : ${error.message}`);
+      throw error;
+    }
+  }
+
+  // Méthode pour traiter les données récupérées et calculer le solde progressif, ainsi que les totaux des débits et des crédits.
+  calculateAccountStatement(transactions: any[], userId: string): any {
+    let balance = 0; // Solde initial
+    let totalDebit = 0; // Total des débits
+    let totalCredit = 0; // Total des crédits
+
+    const statement = transactions.map((transaction) => {
+      const isDebit = transaction.expediteur_id === userId || transaction.compteCommission === userId;
+      const isCredit = transaction.destinataire_id === userId || transaction.utilisateur_id === userId ;
+
+      let amount = 0;
+      if (isDebit) {
+        amount = -transaction.montant; 
+        totalDebit += transaction.montant;
+      } else if (isCredit) {
+        amount = transaction.montant; 
+        totalCredit += transaction.montant;
+      }
+
+      balance += amount; // Mise à jour du solde progressif
+
+      return {
+        id:transaction.id,
+        date: transaction.date,
+        type_operation: transaction.type_operation,
+        description: transaction.description,
+        frais: transaction.frais || 0,
+        motif: transaction.motif,
+        montant: amount,
+        balance: balance,
+      };
+    });
+    // Calcul du solde final
+    const finalBalance = totalCredit - totalDebit;
     return {
-      id:transaction.id,
-      date: transaction.date,
-      type_operation: transaction.type_operation,
-      description: transaction.description,
-      frais: transaction.frais || 0,
-      motif: transaction.motif,
-      montant: amount,
-      balance: balance,
-    };
-  });
-  // Calcul du solde final
-  const finalBalance = totalCredit - totalDebit;
-  return {
-    statement,
-    totalDebit,
-    totalCredit,
-    finalBalance, // Ajout du solde final
+      statement,
+      totalDebit,
+      totalCredit,
+      finalBalance, // Ajout du solde final
 
-  };
-}
+    };
+  }
 }

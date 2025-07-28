@@ -16,4 +16,8 @@ export class CreateCommissionnementDto {
   @IsNotEmpty()
   @IsIn(['DEPOT', 'RETRAIT', 'TRANSFERT'])
   typeOperation: string;
+
+  @IsString()
+  @IsNotEmpty()
+  pays_id: string;
 }

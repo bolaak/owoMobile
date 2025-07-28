@@ -28,7 +28,8 @@ export class UsersService {
     private readonly grilleTarifaireService: GrilleTarifaireService,
     private readonly compteSystemeService: CompteSystemeService, 
     private readonly commissionsService: CommissionnementService, 
-    private readonly transactionsService: TransactionsService,    private readonly gcsService: GCSService) {
+    private readonly transactionsService: TransactionsService,    
+    private readonly gcsService: GCSService) {
 
     // Configurez Airtable directement ici
     const airtable = new Airtable({ apiKey: Config.AIRTABLE_API_KEY });
@@ -310,6 +311,30 @@ async validateUserType(userId: string, userType: string): Promise<void> {
     }
 
     console.log(`Validation réussie pour l'utilisateur ID : ${userId}, Type : ${userType}`);
+  } catch (error) {
+    console.error(`Erreur lors de la validation du type utilisateur : ${error.message}`);
+    throw error;
+  }
+}
+async validateUserTypeForCompensation(userId: string, allowedTypes: string[] | string): Promise<void> {
+  try {
+    const typesArray = Array.isArray(allowedTypes) ? allowedTypes : [allowedTypes];
+    const typesFormula = typesArray.map(type => `{type_utilisateur} = '${type}'`).join(', ');
+
+    const formula = `AND({id} = '${userId}', OR(${typesFormula}))`;
+
+    console.log(`Validation du type utilisateur pour l'ID : ${userId}, Types autorisés : ${typesArray.join(', ')}`);
+    
+    const userRecords = await this.base('Utilisateurs')
+      .select({ filterByFormula: formula })
+      .firstPage();
+
+    if (userRecords.length === 0) {
+      console.log(`Aucun utilisateur correspondant trouvé pour l'ID ${userId} avec les types spécifiés : ${typesArray.join(', ')}`);
+      throw new Error(`L'utilisateur spécifié n'a pas un type autorisé (${typesArray.join(', ')}).`);
+    }
+
+    console.log(`Validation réussie pour l'utilisateur ID : ${userId}, Type valide`);
   } catch (error) {
     console.error(`Erreur lors de la validation du type utilisateur : ${error.message}`);
     throw error;

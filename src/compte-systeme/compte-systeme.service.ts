@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as Airtable from 'airtable';
 import { Config } from '../config';
+import { Console } from 'console';
 
 @Injectable()
 export class CompteSystemeService {
@@ -58,7 +59,8 @@ async createCompteSysteme(compteData: any) {
       ]);
       return { id: createdRecords[0].id, ...createdRecords[0].fields };
     } catch (error) {
-      throw new Error(`Erreur lors de la création du compte système : ${error.message}`);
+      console.log(`Erreur lors de la création du compte système : ${error.message}`);
+      throw error;
     }
   }
 

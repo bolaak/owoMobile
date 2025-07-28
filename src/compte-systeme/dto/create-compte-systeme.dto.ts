@@ -4,6 +4,6 @@ import { IsString, IsNotEmpty, IsIn } from 'class-validator';
 export class CreateCompteSystemeDto {
   @IsString()
   @IsNotEmpty()
-  @IsIn(['DEPOT', 'RETRAIT', 'TRANSFERT'])
+  @IsIn(['DEPOT', 'RETRAIT', 'TRANSFERT', 'CONVERSION'])
   typeOperation: string;
 }

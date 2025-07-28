@@ -23,11 +23,7 @@ export class CompteSystemeController {
   }
 
   // Créer un nouveau compte système
-  /*@Post()
-  @UseGuards(AdminGuard)
-  async createCompteSysteme(@Body() compteData: any) {
-    return this.compteSystemeService.createCompteSysteme(compteData);
-  }*/
+
     @Post()
     @UseGuards(AdminGuard)
     @UsePipes(new ValidationPipe())

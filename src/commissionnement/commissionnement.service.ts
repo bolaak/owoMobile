@@ -3,14 +3,16 @@ import { Injectable } from '@nestjs/common';
 import * as Airtable from 'airtable';
 import { Config } from '../config';
 //import { UsersService } from '../users/users.service';
+import {PaysService } from '../pays/pays.service';
+
 
 
 @Injectable()
 export class CommissionnementService {
   private base;
 
-  constructor() {
-    //private readonly usersService: UsersService
+  constructor(private readonly paysService: PaysService) {
+
     // Configurez Airtable directement ici
     if (!Config.AIRTABLE_API_KEY || !Config.AIRTABLE_BASE_ID) {
       throw new Error('AIRTABLE_API_KEY or AIRTABLE_BASE_ID is not defined in the environment variables');
@@ -41,46 +43,65 @@ export class CommissionnementService {
 
   // Créer un nouveau taux de commissionnement
   async createCommissionnement(commissionData: any) {
-    const { typeUtilisateur, pourcentage } = commissionData;
+    const { typeUtilisateur, pourcentage, typeOperation, pays_id } = commissionData;
   
     // Validation : vérifier que le type d'utilisateur est valide
-    if (!this.isValidTypeUtilisateur(typeUtilisateur)) {
+    if (!this.isValidTypeUtilisateur(typeUtilisateur, pays_id)) {
       throw new Error(`Le type d'utilisateur "${typeUtilisateur}" n'est pas autorisé. Les valeurs autorisées sont : MARCHAND, MASTER, ADMIN, TAXE.`);
     }
 
     // Validation : vérifier que le type d'utilisateur est unique
-    const isUnique = await this.isTypeUtilisateurUnique(typeUtilisateur);
+    const isUnique = await this.isTypeUtilisateurUnique(typeUtilisateur, pays_id);
     if (!isUnique) {
         throw new Error(`Un pourcentage de commissionnement pour le type d'utilisateur "${typeUtilisateur}" existe déjà.`);
     }
+    // Récupérez l'ID du pays correspondant
+      const pays = await this.paysService.getPaysById(commissionData.pays_id);
+  
+      if (!pays) {
+        throw new Error(`Le pays "${commissionData.pays_id}" n'existe pas.`);
+      }
+      // Formatez le champ "pays" comme un tableau d'IDs
+      commissionData.pays_id = [pays.id];
+      console.log(`Erreur lors de la création du taux de commissionnement : ${pays_id}`);
 
     try {
       const createdRecords = await this.base('Commissionnement').create([{ fields: commissionData }]);
       return { id: createdRecords[0].id, ...createdRecords[0].fields };
     } catch (error) {
-      throw new Error(`Erreur lors de la création du taux de commissionnement : ${error.message}`);
+      console.log(`Erreur lors de la création du taux de commissionnement : ${error.message}`);
+      throw error;
     }
   }
 
   // Mettre à jour un taux de commissionnement existant
   async updateCommissionnement(id: string, updatedData: any) {
-    const { typeUtilisateur } = updatedData;
+    const { typeUtilisateur, pays_id } = updatedData;
   
     // Validation : vérifier que le type d'utilisateur est valide
-    if (typeUtilisateur && !this.isValidTypeUtilisateur(typeUtilisateur)) {
+    if (typeUtilisateur && !this.isValidTypeUtilisateur(typeUtilisateur, pays_id)) {
       throw new Error(`Le type d'utilisateur "${typeUtilisateur}" n'est pas autorisé. Les valeurs autorisées sont : MARCHAND, MASTER, ADMIN.`);
     }
 
     // Validation : vérifier que le type d'utilisateur est unique
     if (typeUtilisateur) {
         const existingRecord = await this.base('Commissionnement')
-        .select({ filterByFormula: `AND({typeUtilisateur} = '${typeUtilisateur}', NOT({id} = '${id}'))` })
+        .select({ filterByFormula: `AND({typeUtilisateur} = '${typeUtilisateur}', {pays_id} = '${pays_id}', NOT({id} = '${id}'))` })
         .firstPage();
 
         if (existingRecord.length > 0) {
         throw new Error(`Un pourcentage de commissionnement pour le type d'utilisateur "${typeUtilisateur}" existe déjà.`);
         }
-    }  
+    } 
+     // Récupérez l'ID du pays correspondant
+      const pays = await this.paysService.getPaysById(updatedData.pays_id);
+
+    if (!pays) {
+      throw new Error(`Le pays "${updatedData.pays_id}" n'existe pas.`);
+    }
+    // Formatez le champ "pays" comme un tableau d'IDs
+    updatedData.pays_id = [pays.id];
+       
     try {
       await this.base('Commissionnement').update(id, updatedData);
       return { message: 'Taux de commissionnement mis à jour avec succès.' };
@@ -100,15 +121,15 @@ export class CommissionnementService {
   }
 
   // une méthode pour vérifier que le typeUtilisateur est valide.
-    private isValidTypeUtilisateur(typeUtilisateur: string): boolean {
+    private isValidTypeUtilisateur(typeUtilisateur: string, pays_id: string): boolean {
         const allowedTypes = ['MARCHAND', 'MASTER', 'ADMIN', 'TAXE'];
         return allowedTypes.includes(typeUtilisateur);
     }
 
     // méthode pour vérifier si un pourcentage existe déjà pour un type d'utilisateur donné.
-    async isTypeUtilisateurUnique(typeUtilisateur: string): Promise<boolean> {
+    async isTypeUtilisateurUnique(typeUtilisateur: string, pays_id: string): Promise<boolean> {
         const records = await this.base('Commissionnement')
-        .select({ filterByFormula: `{typeUtilisateur} = '${typeUtilisateur}'` })
+        .select({ filterByFormula: `AND({typeUtilisateur} = '${typeUtilisateur}', {pays_id} = '${pays_id}')` })
         .firstPage();
     
         return records.length === 0; // Retourne true si aucun enregistrement n'existe pour ce type d'utilisateur

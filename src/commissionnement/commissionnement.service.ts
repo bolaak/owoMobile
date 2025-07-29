@@ -51,7 +51,7 @@ export class CommissionnementService {
     }
 
     // Validation : vérifier que le type d'utilisateur est unique
-    const isUnique = await this.isTypeUtilisateurUnique(typeUtilisateur, pays_id);
+    const isUnique = await this.isTypeUtilisateurUnique(typeUtilisateur, pays_id, typeOperation);
     if (!isUnique) {
         throw new Error(`Un pourcentage de commissionnement pour le type d'utilisateur "${typeUtilisateur}" existe déjà.`);
     }
@@ -127,9 +127,9 @@ export class CommissionnementService {
     }
 
     // méthode pour vérifier si un pourcentage existe déjà pour un type d'utilisateur donné.
-    async isTypeUtilisateurUnique(typeUtilisateur: string, pays_id: string): Promise<boolean> {
+    async isTypeUtilisateurUnique(typeUtilisateur: string, pays_id: string, typeOperation: string): Promise<boolean> {
         const records = await this.base('Commissionnement')
-        .select({ filterByFormula: `AND({typeUtilisateur} = '${typeUtilisateur}', {pays_id} = '${pays_id}')` })
+        .select({ filterByFormula: `AND({typeUtilisateur} = '${typeUtilisateur}',{typeOperation} = '${typeOperation}', {pays_id} = '${pays_id}')` })
         .firstPage();
     
         return records.length === 0; // Retourne true si aucun enregistrement n'existe pour ce type d'utilisateur

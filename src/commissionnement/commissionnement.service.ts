@@ -76,7 +76,7 @@ export class CommissionnementService {
 
   // Mettre à jour un taux de commissionnement existant
   async updateCommissionnement(id: string, updatedData: any) {
-    const { typeUtilisateur, pays_id } = updatedData;
+    const { typeUtilisateur, typeOperation, pays_id } = updatedData;
   
     // Validation : vérifier que le type d'utilisateur est valide
     if (typeUtilisateur && !this.isValidTypeUtilisateur(typeUtilisateur, pays_id)) {
@@ -86,7 +86,7 @@ export class CommissionnementService {
     // Validation : vérifier que le type d'utilisateur est unique
     if (typeUtilisateur) {
         const existingRecord = await this.base('Commissionnement')
-        .select({ filterByFormula: `AND({typeUtilisateur} = '${typeUtilisateur}', {pays_id} = '${pays_id}', NOT({id} = '${id}'))` })
+        .select({ filterByFormula: `AND({typeUtilisateur} = '${typeUtilisateur}', {typeOperation} = '${typeOperation}', {pays_id} = '${pays_id}', NOT({id} = '${id}'))` })
         .firstPage();
 
         if (existingRecord.length > 0) {

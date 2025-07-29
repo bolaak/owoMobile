@@ -63,7 +63,7 @@ export class CommissionnementService {
       }
       // Formatez le champ "pays" comme un tableau d'IDs
       commissionData.pays_id = [pays.id];
-      console.log(`Erreur lors de la création du taux de commissionnement : ${pays_id}`);
+      console.log(`Formatage du pays : ${pays_id}`);
 
     try {
       const createdRecords = await this.base('Commissionnement').create([{ fields: commissionData }]);

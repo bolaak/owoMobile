@@ -43,47 +43,57 @@ export class GrilleTarifaireService {
     return { id: records[0].id, ...records[0].fields };
   }
 
-  // Créer une nouvelle grille tarifaire
-  /*createGrilleTarifaire(grilleData: any) {
-    const { min_montant, max_montant } = grilleData;
-  
-    // Validation : min_montant doit être strictement inférieur à max_montant
-    if (min_montant >= max_montant) {
-      throw new Error('Le montant minimum doit être strictement inférieur au montant maximum.');
-    }
-  
-    // Validation : vérifier les chevauchements avec les plages existantes
-    await this.validatePlageMontant(min_montant, max_montant);
-  
-    try {
-      const createdRecords = await this.base('GrilleTarifaire').create([{ fields: grilleData }]);
-      return { id: createdRecords[0].id, ...createdRecords[0].fields };
-    } catch (error) {
-      throw new Error(`Erreur lors de la création de la grille tarifaire : ${error.message}`);
-    }
-  }*/
     async createGrilleTarifaire(grilleData: any) {
+      console.log("▶️ Étape 0 – Méthode appelée avec :", grilleData);
+
       const { min_montant, max_montant, pays_id, type_operation } = grilleData;
-    
-      // Validation : min_montant doit être strictement inférieur à max_montant
+
+      // Étape 1 : validation des montants
       if (min_montant >= max_montant) {
+        console.error("❌ min_montant >= max_montant");
         throw new Error('Le montant minimum doit être strictement inférieur au montant maximum.');
       }
-    
-      // Validation : vérifier que le pays existe
-      await this.checkCountryExists(pays_id);
+      console.log("✅ Étape 1 – Validation montant OK");
 
-    // Assurez-vous que pays_id est un tableau
-    grilleData.pays_id = Array.isArray(pays_id) ? pays_id : [pays_id];
-    
-      // Validation : vérifier les chevauchements avec les plages existantes pour le même pays
-      await this.validatePlageMontant(min_montant, max_montant, pays_id, type_operation);
-    
+      // Étape 2 : récupération du pays
+      const pays = await this.paysService.getPaysById(grilleData.pays_id);
+      console.log("✅ Étape 2 – Pays récupéré :", pays);
+
+      if (!pays) {
+        console.error("❌ Pays introuvable :", grilleData.pays_id);
+        throw new Error(`Le pays "${grilleData.pays_id}" n'existe pas.`);
+      }
+
+      // Formatage du pays_id
+      grilleData.pays_id = [pays.id];
+      console.log("✅ Étape 2.1 – pays_id formaté :", grilleData.pays_id);
+
+      // Étape 3 : validation chevauchement
+      await this.validatePlageMontant(min_montant, max_montant, grilleData.pays_id[0], type_operation);
+      console.log("✅ Étape 3 – Validation plage de montants OK");
+
+      // Étape 4 : création dans Airtable
       try {
-        const createdRecords = await this.base('GrilleTarifaire').create([{ fields: grilleData }]);
-        return { id: createdRecords[0].id, ...createdRecords[0].fields };
-      } catch (error) {
-        throw new Error(`Erreur lors de la création de la grille tarifaire : ${error.message}`);
+        console.log("✅ Étape 4 – Données prêtes pour Airtable :", grilleData);
+
+        const createdRecords = await this.base('GrilleTarifaire').create([
+          { fields: grilleData }
+        ]);
+
+        console.log("✅ Étape 5 – Grille créée :", createdRecords[0]);
+
+        return {
+          id: createdRecords[0].id,
+          ...createdRecords[0].fields
+        };
+      } catch (error: any) {
+        console.error("❌ Erreur lors de la création de la grille tarifaire :", {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+          error
+        });
+        throw new Error("Une erreur interne est survenue.");
       }
     }
 
@@ -130,7 +140,8 @@ async updateGrilleTarifaire(id: string, updatedData: any) {
 async validatePlageMontant(min_montant: number, max_montant: number, pays_id: string, type_operation: string): Promise<void> {
   // Récupérer toutes les grilles tarifaires pour le pays spécifié
   const records = await this.base('GrilleTarifaire')
-    .select({ filterByFormula: `{pays_id} = '${pays_id}', {type_operation} = '${type_operation}'` })
+    .select({ filterByFormula: `AND({pays_id} = '${pays_id}', {type_operation} = '${type_operation}')`
+ })
     .all();
 
   for (const record of records) {

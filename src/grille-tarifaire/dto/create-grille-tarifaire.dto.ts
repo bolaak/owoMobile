@@ -4,17 +4,17 @@ import { IsNumber, IsNotEmpty, Min, IsString, IsIn } from 'class-validator';
 export class CreateGrilleTarifaireDto {
   @IsNumber()
   @IsNotEmpty()
-  @Min(0)
+  @Min(1)
   min_montant: number;
 
   @IsNumber()
   @IsNotEmpty()
-  @Min(0)
+  @Min(1)
   max_montant: number;
 
   @IsNumber()
   @IsNotEmpty()
-  @Min(0)
+  @Min(1)
   frais: number;
 
   @IsString()

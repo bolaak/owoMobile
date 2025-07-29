@@ -21,4 +21,8 @@ export class CreateGrilleTarifaireDto {
   @IsNotEmpty()
   @IsIn(['DEPOT', 'RETRAIT', 'TRANSFERT'])
   type_operation: string;
+
+  @IsString()
+  @IsNotEmpty()
+  pays_id: string;
 }

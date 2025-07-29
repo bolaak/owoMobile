@@ -3,12 +3,14 @@ import { Injectable } from '@nestjs/common';
 //import { Airtable } from 'airtable'; // Importation ES6
 import * as Airtable from 'airtable';
 import { Config } from '../config';
+import {PaysService } from '../pays/pays.service';
+
 
 @Injectable()
 export class GrilleTarifaireService {
   private base;
 
-  constructor() {
+  constructor(private readonly paysService: PaysService) {
     if (!Config.AIRTABLE_API_KEY || !Config.AIRTABLE_BASE_ID) {
         throw new Error('AIRTABLE_API_KEY or AIRTABLE_BASE_ID is not defined in the environment variables');
     }

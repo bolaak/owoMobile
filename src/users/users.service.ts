@@ -255,6 +255,21 @@ async getUserByNumeroCompte(numero_compte: string) {
     console.log(`Aucun utilisateur trouvé avec le numéro de compte : ${numero_compte}`);
     throw new Error('Utilisateur non trouvé.');
   }
+
+      // Extraire les champs de l'utilisateur
+    const userFields = records[0].fields;
+
+    // Supprimer les champs sensibles
+    //delete userFields.mot_de_passe; 
+    delete userFields.PIN; 
+    //delete userFields.pays_id; 
+    delete userFields.master_id;
+    delete userFields.destinataire; 
+    delete userFields.expediteur; 
+    delete userFields.CodesRecharge; 
+    delete userFields.recharge_master; 
+    delete userFields.OTP; 
+    
   console.log(`Utilisateur trouvé :`, records[0]);
   return records[0].fields;
 }

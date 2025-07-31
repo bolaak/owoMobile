@@ -225,6 +225,51 @@ async changePassword( @User() user: any, @Body() body: ChangePasswordDto) {
       throw new Error(`Erreur lors de la récupération des informations de l'utilisateur : ${error.message}`);
     }
   }
+  // UsersInfo with account number
+  @Get('getUserDetails/:numero')
+  @UseGuards(AuthGuard)
+  async getUserDetails(@Param('numero') numero: string) {
+    try {
+      console.log(`Demande d'informations pour l'utilisateur ID : ${numero}`);
+
+      // Récupérer les informations de base de l'utilisateur
+      const userRecord = await this.usersService.getUserByNumeroCompte(numero);
+      const userInfo = {
+        name: `${userRecord.prenom} ${userRecord.nom}`,
+        photo: userRecord.photo_url || null,
+        email: userRecord.email,
+        birthDate: userRecord.date_naissance,
+        status: userRecord.status,
+        pays: userRecord.nom_pays,
+        pays_status: userRecord.pays_status,
+        devise: userRecord.devise_code?.[0] || 'XOF',
+        code_pays: userRecord.code_pays?.[0] || '',
+        ville: userRecord.ville,
+        adresse: userRecord.adresse,
+        telephone: userRecord.telephone,
+        numero_compte: userRecord.numero_compte,
+        solde: userRecord.solde || 0,
+        type_utilisateur: userRecord.type_utilisateur,
+      };
+      const userId = userRecord.id;
+      // Calculer le nombre de transactions
+      const transactionCount = await this.transactionsService.getTransactionCountForUser(userId);
+
+      // Récupérer la dernière transaction
+      const lastTransaction = await this.transactionsService.getLastTransactionForUser(userId);
+
+      // Retourner les informations complètes
+      return {
+        ...userInfo,
+        nombre_transactions: transactionCount,
+        derniere_transaction: lastTransaction,
+      };
+    } catch (error) {
+      console.error(`Erreur lors de la récupération des informations de l'utilisateur : ${error.message}`);
+      throw error;
+    }
+  }
+
   // méthodes dans un contrôleur pour créer la route /account-statement/:userId
   @Get('statement/:userId')
   @UseGuards(AuthGuard)

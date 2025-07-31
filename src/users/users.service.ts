@@ -170,11 +170,15 @@ private readonly allowedFields = [
 
     // Récupérer l'utilisateur par son numéro de compte
     const user = await this.getUserByNumeroCompte(numero_compte);
+    console.log(`Utilisateur trouvé : ${user.numero_compte}`);
+    console.log(`Code PIN trouvé : ${user.PIN}`);
+
 
     // Vérifier si le code PIN est défini pour cet utilisateur
     if (!user.PIN) {
       throw new Error('Code PIN non défini pour cet utilisateur');
     }
+      console.log(`Code PIN : ${user.PIN}`);
 
     // Comparer le code PIN saisi avec celui haché
     const isValid = await bcrypt.compare(pin, user.PIN);
@@ -261,7 +265,7 @@ async getUserByNumeroCompte(numero_compte: string) {
 
     // Supprimer les champs sensibles
     //delete userFields.mot_de_passe; 
-    delete userFields.PIN; 
+    //delete userFields.PIN; 
     //delete userFields.pays_id; 
     delete userFields.master_id;
     delete userFields.destinataire; 
@@ -269,7 +273,7 @@ async getUserByNumeroCompte(numero_compte: string) {
     delete userFields.CodesRecharge; 
     delete userFields.recharge_master; 
     delete userFields.OTP; 
-    
+
   console.log(`Utilisateur trouvé :`, records[0]);
   return records[0].fields;
 }

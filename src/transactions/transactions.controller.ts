@@ -395,7 +395,7 @@ async rechargeCompte(@Body() rechargeData: { master_id: string; code: string }) 
     await this.usersService.validateOTP(marchandRecord.id, clientRecord.id, otpCode, montant);
 
       console.log('Exécution de l\'opération...');
-      const resultat = await this.usersService.executerOperationDepot(
+      const resultat = await this.usersService.executerOperationDepotInter(
         marchand_numero_compte,
         client_numero_compte,
         montant,

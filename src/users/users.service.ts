@@ -1614,6 +1614,78 @@ async creditSolde(userId: string, montant: number) {
     }
   }
 
+//méthode pour exécuter l'opération Depot une fois que le code OTP est validé.
+  async executerOperationDepotInter(marchand_numero_compte: string, client_numero_compte: string, montant: number, motif: string) {
+    try {
+      console.log('Début de l\'exécution de l\'opération...');
+
+      // Récupérer les enregistrements du Marchand et du Client
+      const marchandRecord = await this.getUserByNumeroCompte(marchand_numero_compte);
+      const clientRecord = await this.getUserByNumeroCompte(client_numero_compte);
+
+      // Calculer les frais de dépot
+      const type_operation = 'DEPOT_INTER';
+      const compteSysteme = await this.compteSystemeService.getCompteSystemeByTypeOperation('RETRAIT');
+
+      // Débiter le solde du Marchand
+      console.log('Débit du solde du Marchand...');
+      const newMarchandSolde = (marchandRecord.solde || 0) - montant;
+      await this.updateSolde(marchandRecord.id, newMarchandSolde);
+
+      // Créditer le solde du Client
+      console.log('Crédit du solde du Client...');
+      const newClientSolde = (clientRecord.solde || 0) + montant;
+      await this.updateSolde(clientRecord.id, newClientSolde);
+
+    // Envoi des e-mails
+    const marchandDeviseCode = marchandRecord.devise_code?.[0] || 'XOF';
+    const clientDeviseCode = clientRecord.devise_code?.[0] || 'XOF';
+
+    await this.mailService.sendDebitedEmailDepot(
+      marchandRecord.email,
+      marchandRecord.nom,
+      clientRecord.nom,
+      montant,
+      marchandDeviseCode,
+      motif
+    );
+    await this.mailService.sendCreditedEmail(
+      clientRecord.email,
+      clientRecord.nom,
+      marchandRecord.nom,
+      montant,
+      clientDeviseCode,
+      motif
+    );
+
+      // Créer la transaction
+      console.log('Création de la transaction...');
+      const deviseCode = clientRecord.devise_code?.[0] || 'XOF'; // Récupérer la devise du pays 
+      const description = `Opération d'approvisionnement Client. Marchand(${marchand_numero_compte}) => Client(${client_numero_compte}) de ${montant} ${deviseCode}`;
+    const transaction = await this.transactionsService.createTransactionAppro({
+        type_operation: 'DEPOT_INTER',
+        montant,
+        //date_transaction: new Date().toISOString(),
+        expediteur_id: marchandRecord.id,
+        destinataire_id: clientRecord.id,
+        description,
+        motif,
+        status: 'SUCCESS',
+      });
+
+    // Partager les commissions
+    await this.shareCommissionsDepot(type_operation, clientRecord.pays_id, montant, marchand_numero_compte, compteSysteme);
+    // Récupérer l'ID de la transaction créée
+    const transactionId = transaction.id;
+    
+      console.log('Opération exécutée avec succès.');
+      return {transaction_id: transactionId, nouveau_solde_marchand: newMarchandSolde, nouveau_solde_client: newClientSolde };
+    } catch (error) {
+      console.error('Erreur lors de l\'exécution de l\'opération :', error.message);
+      throw error;
+    }
+  }
+
  //méthode pour exécuter l'opération Transfert une fois que le code OTP est validé.
  async executerOperationTransfert(client1_numero_compte: string, client2_numero_compte: string, montant: number, motif: string) {
   try {

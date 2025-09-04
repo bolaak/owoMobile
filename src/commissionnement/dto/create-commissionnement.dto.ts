@@ -14,7 +14,7 @@ export class CreateCommissionnementDto {
 
   @IsString()
   @IsNotEmpty()
-  @IsIn(['DEPOT', 'RETRAIT', 'TRANSFERT'])
+  @IsIn(['DEPOT', 'RETRAIT', 'TRANSFERT','DEPOT_INTER', 'RETRAIT_INTER', 'TRANSFERT_INTER'])
   typeOperation: string;
 
   @IsString()

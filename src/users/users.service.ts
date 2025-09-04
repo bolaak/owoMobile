@@ -284,8 +284,37 @@ async validateDifferentAccounts(numeroCompte1: string, numeroCompte2: string): P
     throw new Error("Le compte à créditer ne peut pas être le même que le compte à débiter.");
   }
 }
+// méthode vérifie si deux utilisateurs n'appartiennent pas au même pays en comparant leurs champs pays_id
+async validateNotSameCountry(numeroCompte1: string, numeroCompte2: string): Promise<void> {
+  try {
+    console.log(`Vérification que les comptes ${numeroCompte1} et ${numeroCompte2} ne sont pas du même pays...`);
+
+    // Récupérer les enregistrements des deux comptes
+    const compte1 = await this.getUserByNumeroCompte(numeroCompte1);
+    const compte2 = await this.getUserByNumeroCompte(numeroCompte2);
+
+    // Vérifier si les deux comptes existent
+    if (!compte1 || !compte2) {
+      throw new Error("L\'un ou les deux comptes sont introuvables.");
+    }
+
+    // Récupérer les IDs des pays associés aux comptes
+    const paysId1 = compte1.pays_id?.[0];
+    const paysId2 = compte2.pays_id?.[0];
+
+    // Vérifier si les deux comptes sont du même pays
+    if (paysId1 == paysId2) {
+      console.log(`Pays récupérés : paysId1 : ${paysId1}(${compte1.nom_pays}) et paysId1 :  ${paysId2}(${compte2.nom_pays}).`);
+      throw new Error("Les deux comptes sont du même pays.");
+    }
+
+    console.log(`Validation réussie : Les comptes ${numeroCompte1} et ${numeroCompte2} ne sont pas du même pays.`);
+  } catch (error) {
+    console.error(`Erreur lors de la validation des comptes : ${error.message}`);
+    throw error;
+  }
+}
 // méthode vérifie si deux utilisateurs appartiennent au même pays en comparant leurs champs pays_id
-// src/users/users.service.ts
 async validateSameCountry(numeroCompte1: string, numeroCompte2: string): Promise<void> {
   try {
     console.log(`Vérification que les comptes ${numeroCompte1} et ${numeroCompte2} sont du même pays...`);
@@ -315,7 +344,6 @@ async validateSameCountry(numeroCompte1: string, numeroCompte2: string): Promise
     throw error;
   }
 }
-
 //méthode pour vérifier si un utilisateur est de type Marchand ou Master et s'il est actif.
 async validateUserType(userId: string, userType: string): Promise<void> {
   try {
@@ -1345,7 +1373,37 @@ async creditSolde(userId: string, montant: number) {
     return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.', operationId};
     //return otpCode;
   }
+  // Méthode pour générer un code OTP
+  async generateOTPInter(userId: string, destinataireId: string, montant: number, nom: string, prenoms: string, address: string, phone: string, destEmail: string): Promise<{ operationId: string, message: string }> {
+    //const otpCode = crypto.randomBytes(3).toString('hex').toUpperCase(); // Exemple : "A1B2C3"
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const operationId = Math.floor(1000000000 + Math.random() * 9000000000).toString();
 
+    const expiresAt = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes
+
+    // Stocker le code OTP dans la table OTP
+    await this.base('OTP').create([
+      {
+        fields: {
+          user_id: [userId],
+          destinataire_id: destinataireId,
+          montant: montant,
+          code: otpCode,
+          operation_id: operationId,
+          expires_at: expiresAt.toISOString(),
+        },
+      },
+    ]);
+
+    // Envoyer le code OTP par e-mail
+    const user = await this.getUserById(userId);
+    const email = user.email;
+    await this.mailService.sendOTPEmail(email, otpCode, operationId);
+
+    console.log(`Code OTP généré pour l'utilisateur ID : ${userId}, Opération ID : ${operationId}, Code : ${otpCode}`);
+    return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.', operationId};
+    //return otpCode;
+  }
   // Méthode pour vérifier si le code OTP associé à une opération a expiré
   async checkOTPExpiration(operationId: string): Promise<boolean> {
     try {

@@ -296,6 +296,120 @@ async rechargeCompte(@Body() rechargeData: { master_id: string; code: string }) 
     throw error;
   }
 }
+   //endpoint permettant à un Marchand d'approvisionner le compte d'un Client à l'international.
+   @Post('depot-inter')
+   @UseGuards(MarchandGuard)
+   async approvisionnerClientinter(@Body() approvisionnementData: { client_numero_compte: string; marchand_numero_compte: string; montant: number; motif: string; pin: string }) {
+     const { client_numero_compte, marchand_numero_compte, montant, motif, pin } = approvisionnementData;
+   
+     try {
+       console.log('Données reçues :', approvisionnementData);
+
+    // Vérifier que les comptes à débiter et à créditer sont différents
+    await this.usersService.validateDifferentAccounts(marchand_numero_compte, client_numero_compte);
+
+       // Récupérer les enregistrements du Marchand et du Client
+       console.log('Récupération des données du Client...');
+       const clientRecord = await this.usersService.getUserByNumeroCompte(client_numero_compte);
+       console.log('Client trouvé :', clientRecord);
+   
+       console.log('Récupération des données du Marchand...');
+       const marchandRecord = await this.usersService.getUserByNumeroCompte(marchand_numero_compte);
+       console.log('Marchand trouvé :', marchandRecord);
+
+      // Vérifier que les deux comptes sont du même pays
+      await this.usersService.validateNotSameCountry(marchand_numero_compte, client_numero_compte);
+ 
+       // Vérifier que le Client est de type "CLIENT"
+       console.log('Vérification du type utilisateur (Client)...');
+       await this.usersService.validateUserType(clientRecord.id, 'CLIENT');
+   
+       // Vérifier que le Marchand est de type "MARCHAND"
+       console.log('Vérification du type utilisateur (Marchand)...');
+       await this.usersService.validateUserType(marchandRecord.id, 'MARCHAND');
+ 
+       // Vérifier que le pays du Client est "Activated"
+       console.log('Vérification du statut du Client...');
+       await this.usersService.checkCountryStatusForUser(clientRecord.id);
+ 
+       // Vérifier que le statut du Client est "Activated"
+       console.log('Vérification du statut du Client...');
+       await this.usersService.checkUserStatus(client_numero_compte);
+ 
+       // Vérifier que le pays du Marchand est "Activated"
+       console.log('Vérification du statut du Marchand...');
+       await this.usersService.checkCountryStatusForMarchand(marchandRecord.id);
+ 
+       // Vérifier que le statut du Marchand est "Activated"
+       console.log('Vérification du statut du Marchand...');
+       await this.usersService.checkUserStatusMarchand(marchand_numero_compte);
+ 
+       // Vérifier que le solde du Marchand est suffisant
+       console.log('Vérification du solde du Marchand...');
+       await this.usersService.validateSolde(marchandRecord.id, montant);
+   
+       // Vérifier le code PIN du Marchand
+       console.log('Vérification du code PIN du Master...');
+       await this.usersService.validatePIN(marchand_numero_compte, pin);
+
+     // Générer un code OTP pour valider l'opération
+     console.log('Génération du code OTP...');
+     return this.usersService.generateOTP(marchandRecord.id, clientRecord.id, montant);
+
+       //return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.' };
+     } catch (error) {
+       console.error('Erreur interceptée :', error.message);
+       throw error;;
+     }
+ }
+
+  // enpoint pour valider l'opération de dépot
+  @Post('valider-depot-inter')
+  @UseGuards(MarchandGuard)
+  async validerDepotInter(@Body() validationData: { client_numero_compte: string; marchand_numero_compte: string; montant: number; motif: string; otpCode: string}) {
+    const { client_numero_compte, marchand_numero_compte, montant, motif, otpCode} = validationData;
+
+  try {
+    console.log('Données reçues pour la validation :', validationData);
+
+    // Récupérer l'utilisateur Client
+    console.log('Récupération des données du Client...');
+    const clientRecord = await this.usersService.getUserByNumeroCompte(client_numero_compte);
+    console.log('Client trouvé :', clientRecord);
+
+    // Vérifier que le statut du Client est "Activated"
+    console.log('Vérification du statut du Client...');
+    await this.usersService.checkUserStatus(client_numero_compte);
+
+    // Récupérer l'utilisateur Marchand
+    console.log('Récupération des données du Marchand...');
+    const marchandRecord = await this.usersService.getUserByNumeroCompte(marchand_numero_compte);
+    console.log('Marchand trouvé :', marchandRecord);
+
+    // Vérifier que le statut du Marchand est "Activated"
+    console.log('Vérification du statut du Marchand...');
+    await this.usersService.checkUserStatus(marchand_numero_compte);
+
+    // Valider le code OTP
+    console.log('Validation du code OTP...');
+    await this.usersService.validateOTP(marchandRecord.id, clientRecord.id, otpCode, montant);
+
+      console.log('Exécution de l\'opération...');
+      const resultat = await this.usersService.executerOperationDepot(
+        marchand_numero_compte,
+        client_numero_compte,
+        montant,
+        motif
+      );
+
+    //return { message: 'Validation réussie. L\'opération peut être exécutée.' };
+    return { message: 'Opération exécutée avec succès.', ...resultat };
+
+  } catch (error) {
+    console.error('Erreur lors de la validation ou de l\'exécution de l\'opération :', error.message);
+    throw error;
+  }
+}
 
 // Transfert c-to-c (Client à Client)
 @Post('transfert')
@@ -418,6 +532,77 @@ async transfert(@Body() transfertData: { client1_numero_compte: string; client2_
 
   } catch (error) {
     console.error('Erreur lors de la validation ou de l\'exécution de l\'opération :', error.message);
+    throw error;
+  }
+}
+
+// Transfert M-to-M (Marchand à Marchand)
+@Post('transfert-inter')
+@UseGuards(MarchandGuard)
+async transfert(@Body() transfertData: { client1_numero_compte: string; client2_numero_compte: string; montant: number; motif: string; pin: string, nom: string, prenoms: string, address: string, phone: string, email: string }) {
+  const { client1_numero_compte, client2_numero_compte, montant, motif, pin, nom, prenoms, address, phone, email } = transfertData;
+
+  try {
+    console.log('Données reçues pour le transfert :', transfertData);
+
+    // Vérifier que les comptes à débiter et à créditer sont différents
+    await this.usersService.validateDifferentAccounts(client1_numero_compte, client2_numero_compte);
+
+    // Récupérer les enregistrements des Clients
+       console.log('Récupération des données du Client1...');
+       const client1Record = await this.usersService.getUserByNumeroCompte(client1_numero_compte);
+       console.log('Client 1 trouvé :', client1Record);
+   
+       console.log('Récupération des données du Client2...');
+       const client2Record = await this.usersService.getUserByNumeroCompte(client2_numero_compte);
+       console.log('client 2 trouvé :', client2Record);
+
+      // Vérifier que les deux comptes ne sont pas du même pays
+      await this.usersService.validateNotSameCountry(client1_numero_compte, client2_numero_compte);
+ 
+       // Vérifier que le Client 1 est de type "MARCHAND"
+       console.log('Vérification du type utilisateur (Client 1)...');
+       await this.usersService.validateUserType(client1Record.id, 'MARCHAND');
+   
+       // Vérifier que le Client 2 est de type "MARCHAND"
+       console.log('Vérification du type utilisateur (Client 2)...');
+       await this.usersService.validateUserType(client2Record.id, 'MARCHAND');
+ 
+       // Vérifier que le pays du Client 1 est "Activated"
+       console.log('Vérification du statut du Client 1...');
+       await this.usersService.checkCountryStatusForUser(client1Record.id);
+ 
+       // Vérifier que le statut du Client 1 est "Activated"
+       console.log('Vérification du statut du Client 1...');
+       await this.usersService.checkUserStatus(client1_numero_compte);
+ 
+       // Vérifier que le pays du Client 2 est "Activated"
+       console.log('Vérification du statut du Client 2...');
+       await this.usersService.checkCountryStatusForUser(client2Record.id);
+ 
+       // Vérifier que le statut du Client 2 est "Activated"
+       console.log('Vérification du statut du Client 2...');
+       await this.usersService.checkUserStatus(client2_numero_compte);
+
+    // Calculer les frais de transfert
+    const pays_id = client2Record.pays_id?.[0]; // Récupérer l'ID du pays du Client 1
+    const type_operation = 'TRANSFERT_INTER';
+    const fraisTransfert = await this.grilleTarifaireService.getFraisOperation(pays_id, type_operation, montant); // Récupérer les frais
+    const montantTotal = montant + fraisTransfert;
+
+    // Vérifier que le solde du Client 1 est suffisant
+    await this.usersService.validateSolde(client1Record.id, montantTotal);
+
+    // Vérifier le code PIN du Client 1
+    await this.usersService.validatePIN(client1_numero_compte, pin);
+
+  // Générer un code OTP pour valider l'opération
+  console.log('Génération du code OTP...');
+  return this.usersService.generateOTPInter(client1Record.id, client2Record.id, montant, nom, prenoms, address, phone, email);
+
+    //return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.' };
+  } catch (error) {
+    console.error('Erreur interceptée :', error.message);
     throw error;
   }
 }
@@ -678,7 +863,7 @@ async exchangeBalance(@Body() exchangeData: { typeOperation: string; direction: 
   }
 }
 
-// src/approvisionnement/approvisionnement.controller.ts
+// renvoie de OTP
 @Post('resend-otp')
 //UseGuards(AuthGuard)
 async regenerateOTP(@Body() otpData: { operationId: string }) {

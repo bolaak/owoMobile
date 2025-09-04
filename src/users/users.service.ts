@@ -1624,7 +1624,7 @@ async creditSolde(userId: string, montant: number) {
       const clientRecord = await this.getUserByNumeroCompte(client_numero_compte);
 
       // Calculer les frais de dépot
-      const type_operation = 'DEPOT_INTER';
+      const type_operation = 'DEPOT';
       const compteSysteme = await this.compteSystemeService.getCompteSystemeByTypeOperation('RETRAIT');
 
       // Débiter le solde du Marchand
@@ -1674,7 +1674,7 @@ async creditSolde(userId: string, montant: number) {
       });
 
     // Partager les commissions
-    await this.shareCommissionsDepot(type_operation, clientRecord.pays_id, montant, marchand_numero_compte, compteSysteme);
+    await this.shareCommissionsDepot(type_operation, marchandRecord.pays_id, montant, marchand_numero_compte, compteSysteme);
     // Récupérer l'ID de la transaction créée
     const transactionId = transaction.id;
     

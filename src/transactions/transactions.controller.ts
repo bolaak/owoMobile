@@ -539,7 +539,7 @@ async transfert(@Body() transfertData: { client1_numero_compte: string; client2_
 // Transfert M-to-M (Marchand à Marchand)
 @Post('transfert-inter')
 @UseGuards(MarchandGuard)
-async transfert(@Body() transfertData: { client1_numero_compte: string; client2_numero_compte: string; montant: number; motif: string; pin: string, nom: string, prenoms: string, address: string, phone: string, email: string }) {
+async transfertInter(@Body() transfertData: { client1_numero_compte: string; client2_numero_compte: string; montant: number; motif: string; pin: string, nom: string, prenoms: string, address: string, phone: string, email: string }) {
   const { client1_numero_compte, client2_numero_compte, montant, motif, pin, nom, prenoms, address, phone, email } = transfertData;
 
   try {

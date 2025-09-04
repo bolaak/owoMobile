@@ -1624,7 +1624,7 @@ async creditSolde(userId: string, montant: number) {
       const clientRecord = await this.getUserByNumeroCompte(client_numero_compte);
 
       // Calculer les frais de dépot
-      const type_operation = 'DEPOT';
+      const type_operation = 'DEPOT_INTER';
       const compteSysteme = await this.compteSystemeService.getCompteSystemeByTypeOperation('RETRAIT');
 
       // Débiter le solde du Marchand

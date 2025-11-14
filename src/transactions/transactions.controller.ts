@@ -317,7 +317,7 @@ async rechargeCompte(@Body() rechargeData: { master_id: string; code: string }) 
        const marchandRecord = await this.usersService.getUserByNumeroCompte(marchand_numero_compte);
        console.log('Marchand trouvé :', marchandRecord);
 
-      // Vérifier que les deux comptes sont du même pays
+      // Vérifier que les deux comptes ne sont pas du même pays
       await this.usersService.validateNotSameCountry(marchand_numero_compte, client_numero_compte);
  
        // Vérifier que le Client est de type "CLIENT"
@@ -344,9 +344,15 @@ async rechargeCompte(@Body() rechargeData: { master_id: string; code: string }) 
        console.log('Vérification du statut du Marchand...');
        await this.usersService.checkUserStatusMarchand(marchand_numero_compte);
  
+      // Calculer les frais de transfert
+    const pays_id = marchandRecord.pays_id?.[0]; // Récupérer l'ID du pays du Client 1
+    const type_operation = 'DEPOT_INTER';
+    const fraisTransfert = await this.grilleTarifaireService.getFraisOperation(pays_id, type_operation, montant); // Récupérer les frais
+    const montantTotal = montant + fraisTransfert;
+
        // Vérifier que le solde du Marchand est suffisant
        console.log('Vérification du solde du Marchand...');
-       await this.usersService.validateSolde(marchandRecord.id, montant);
+       await this.usersService.validateSolde(marchandRecord.id, montantTotal);
    
        // Vérifier le code PIN du Marchand
        console.log('Vérification du code PIN du Master...');

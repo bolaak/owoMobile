@@ -2,6 +2,8 @@
 import { Injectable } from '@nestjs/common';
 import * as Airtable from 'airtable'; // Importez Airtable correctement
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
+import * as jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { MailService } from '../mail/mail.service';
 import { TransactionsService } from '../transactions/transactions.service';
@@ -1098,9 +1100,9 @@ async shareCommissions(typeOperation: string, paysId: string, montantFrais: numb
   }
 }
 
-// méthode pour partager les commissions Depotven tenant compte des règles métier spécifiques.
+// méthode pour partager les commissions Depot en tenant compte des règles métiers spécifiques.
 async shareCommissionsDepot(typeOperation: string, paysId: string, montant: number, marchandNumeroCompte: string, compteSysteme: any): Promise<void> {
-  try {
+  /*try {
     console.log(`Partage des commissions pour l'opération : ${typeOperation}`);
 
     // Récupérer les configurations de commissionnement pour l'opération et le pays
@@ -1110,6 +1112,10 @@ async shareCommissionsDepot(typeOperation: string, paysId: string, montant: numb
     // Récupérer le Marchand
     const marchandRecord = await this.getUserByNumeroCompte(marchandNumeroCompte);
     console.log(`les données du Marchand trouvées : ${marchandRecord}`);
+
+    // Récupérer le compte ADMIN
+    const adminRecord = await this.getAdminAccount();
+    console.log(`les données de ADMIN trouvées : ${adminRecord}`);
 
     const deviseCode = marchandRecord.devise_code?.[0] || 'XOF'; // Récupérer la devise du pays 
     const pays = marchandRecord.nom_pays?.[0] || ''; // Récupérer le nom du pays 
@@ -1156,6 +1162,105 @@ async shareCommissionsDepot(typeOperation: string, paysId: string, montant: numb
 
       console.log(`Part ajoutée au solde de l'acteur : ${typeUtilisateur}, Montant : ${part}`);
     }
+
+  } catch (error) {
+    console.error(`Erreur lors du partage des commissions : ${error.message}`);
+    throw error;
+  }*/
+  try {
+    console.log(`Partage des commissions pour l'opération : ${typeOperation}`);
+
+    // Récupérer les configurations de commissionnement pour l'opération et le pays
+    const commissions = await this.commissionsService.getCommissionsByOperation(typeOperation, paysId);
+    console.log(`Les enregistrements récupérés pour l'opération ${typeOperation} du pays ${paysId} : ${commissions}`);
+
+    // Récupérer le compte ADMIN
+    const adminRecord = await this.getAdminAccount();
+    console.log(`les données de ADMIN trouvées : ${adminRecord}`);
+
+    // Récupérer le compte du GOUVERNEMENT
+    /*const taxeRecord = await this.getTaxeAccount();
+    console.log(`les données du GOUVERNEMENT trouvées : ${taxeRecord}`);*/
+
+
+    // Récupérer le Marchand
+    const marchandRecord = await this.getUserByNumeroCompte(marchandNumeroCompte);
+    console.log(`les données du Marchand trouvées : ${marchandRecord}`);
+
+
+    // Récupérer le Master associé au Marchand
+    const masterRecord = await this.getMasterByMarchand(marchandRecord.id);
+    //const masterRecord = marchandRecord.master_id;
+    console.log(`le Master rattaché au Marchand trouvé : ${masterRecord}`);
+
+    const deviseCode = marchandRecord.devise_code?.[0] || 'XOF'; // Récupérer la devise du pays 
+    const pays = marchandRecord.nom_pays?.[0] || ''; // Récupérer le nom du pays 
+
+    // Partager les commissions entre les acteurs
+    for (const commission of commissions) {
+      const typeUtilisateur = commission.fields.typeUtilisateur;
+      const pourcentage = commission.fields.pourcentage;
+      const part = (montant * pourcentage) / 100;
+      
+      //let destinataireId: string | null = null;
+      let destinataireId: string = ""; // Initialisation avec une chaîne vide
+      let description = '';
+
+      switch (typeUtilisateur) {
+        case 'ADMIN':
+          //await this.updateSolde(adminRecord.id, (adminRecord.solde || 0) + part);
+          destinataireId = adminRecord.id;
+          //description = `Commission de ${part} ${deviseCode} ajoutée au solde de l'ADMIN sur opération de ${typeOperation} au ${pays}`;
+          description = `${part} ${deviseCode} débité du compte système(${compteSysteme.fields.numCompte}) pour commission sur opération de ${typeOperation} au compte OPERATEUR TECHNIQUE effectuée au ${pays}`;
+          break;
+
+        /*case 'TAXE':
+        //await this.updateSolde(taxeRecord.id, (taxeRecord.solde || 0) + part);
+        destinataireId = taxeRecord.id;
+        //description = `Commission de ${part} ${deviseCode} ajoutée au solde du GOUVERNEMENT sur opération de ${typeOperation} au ${pays}`;
+        description = `${part} ${deviseCode} débité du compte système(${compteSysteme.fields.numCompte}) pour commission sur opération de ${typeOperation} au compte du GOUVERNEMENT effectuée au ${pays}`;
+        break;*/
+
+        case 'MARCHAND':
+          //await this.updateSolde(marchandRecord.id, (marchandRecord.solde || 0) + part);
+          destinataireId = marchandRecord.id;
+          //description = `Commission de ${part} ${deviseCode} ajoutée au solde du Marchand(${marchandRecord.numero_compte}) sur opération de ${typeOperation}`;
+          description = `${part} ${deviseCode} débité du compte système(${compteSysteme.fields.numCompte}) pour commission sur opération de ${typeOperation} au compte du Marchand(${marchandRecord.numero_compte}) effectuée au ${pays}`;
+          break;
+
+        case 'MASTER':
+          //await this.updateSolde(masterRecord.id, (masterRecord.solde || 0) + part);
+          destinataireId = masterRecord.id;
+          //description = `Commission de ${part} ${deviseCode} ajoutée au solde du Master(${masterRecord.numero_compte}) sur opération de ${typeOperation} `;
+          description = `${part} ${deviseCode} débité du compte système(${compteSysteme.fields.numCompte}) pour commission sur opération de ${typeOperation} au compte du Master(${masterRecord.numero_compte}) effectuée au ${pays}`;
+          break;
+
+        default:
+          console.warn(`Type d'utilisateur inconnu : ${typeUtilisateur}`);
+          //break;
+          continue; // Ignorer ce type d'utilisateur
+
+      }
+      // Mettre à jour le solde de l'acteur
+      const destinataireRecord = await this.getUserById(destinataireId);
+      const nouveauSoldeDestinataire = (destinataireRecord.solde || 0) + part;
+      await this.updateSolde(destinataireId, nouveauSoldeDestinataire);
+
+      // Créer une transaction pour cette commission
+      await this.transactionsService.createCommissionTransaction(
+        part,
+        compteSysteme.id,
+        destinataireId,
+        description
+      );
+      console.log(`le compte systeme trouvé : ${compteSysteme.fields.id}`);
+      await this.compteSystemeService.debiterCompteSysteme(compteSysteme.fields.id, part);
+      console.log(`Part ajoutée au solde de l'acteur : ${typeUtilisateur}, Montant : ${part}`);
+    }
+        // Débiter le compte système
+        /*const nouveauSoldeCompteSysteme = (compteSysteme.fields.solde || 0) - montantFrais;
+        await this.compteSystemeService.updateSoldeSysteme(compteSysteme.fields.id, nouveauSoldeCompteSysteme);*/
+
 
   } catch (error) {
     console.error(`Erreur lors du partage des commissions : ${error.message}`);
@@ -1624,12 +1729,16 @@ async creditSolde(userId: string, montant: number) {
       const clientRecord = await this.getUserByNumeroCompte(client_numero_compte);
 
       // Calculer les frais de dépot
+      //const type_operation = 'DEPOT_INTER';
+      //const compteSysteme = await this.compteSystemeService.getCompteSystemeByTypeOperation('RETRAIT');
+      
       const type_operation = 'DEPOT_INTER';
-      const compteSysteme = await this.compteSystemeService.getCompteSystemeByTypeOperation('RETRAIT');
+      const fraisTransfert = await this.grilleTarifaireService.getFraisOperation(marchandRecord.pays_id, type_operation, montant); // Récupérer les frais
+      const montantTotal = montant + fraisTransfert;
 
       // Débiter le solde du Marchand
       console.log('Débit du solde du Marchand...');
-      const newMarchandSolde = (marchandRecord.solde || 0) - montant;
+      const newMarchandSolde = (marchandRecord.solde || 0) - montantTotal;
       await this.updateSolde(marchandRecord.id, newMarchandSolde);
 
       // Créditer le solde du Client
@@ -1658,11 +1767,15 @@ async creditSolde(userId: string, montant: number) {
       motif
     );
 
+    // Transférer les frais vers le compte de commissions
+    const compteSysteme = await this.compteSystemeService.getCompteSystemeByTypeOperation('TRANSFERT');
+    await this.compteSystemeService.crediterCompteSysteme(compteSysteme.id, fraisTransfert);
+
       // Créer la transaction
       console.log('Création de la transaction...');
       const deviseCode = clientRecord.devise_code?.[0] || 'XOF'; // Récupérer la devise du pays 
       const description = `Opération d'approvisionnement Client. Marchand(${marchand_numero_compte}) => Client(${client_numero_compte}) de ${montant} ${deviseCode}`;
-    const transaction = await this.transactionsService.createTransactionAppro({
+      const transaction = await this.transactionsService.createTransactionAppro({
         type_operation: 'DEPOT_INTER',
         montant,
         //date_transaction: new Date().toISOString(),
@@ -1672,11 +1785,13 @@ async creditSolde(userId: string, montant: number) {
         motif,
         status: 'SUCCESS',
       });
-
-    // Partager les commissions
-    await this.shareCommissionsDepot(type_operation, marchandRecord.pays_id, montant, marchand_numero_compte, compteSysteme);
+    
     // Récupérer l'ID de la transaction créée
     const transactionId = transaction.id;
+
+    // Partager les commissions
+    await this.shareCommissionsDepot(type_operation, marchandRecord.pays_id, fraisTransfert, marchand_numero_compte, compteSysteme);
+
     
       console.log('Opération exécutée avec succès.');
       return {transaction_id: transactionId, nouveau_solde_marchand: newMarchandSolde, nouveau_solde_client: newClientSolde };

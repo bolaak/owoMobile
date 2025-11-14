@@ -19,7 +19,7 @@ export class CreateGrilleTarifaireDto {
 
   @IsString()
   @IsNotEmpty()
-  @IsIn(['DEPOT', 'RETRAIT', 'TRANSFERT'])
+  @IsIn(['DEPOT', 'RETRAIT', 'TRANSFERT', 'DEPOT_INTER'])
   type_operation: string;
 
   @IsString()

@@ -1746,26 +1746,7 @@ async creditSolde(userId: string, montant: number) {
       const newClientSolde = (clientRecord.solde || 0) + montant;
       await this.updateSolde(clientRecord.id, newClientSolde);
 
-    // Envoi des e-mails
-    const marchandDeviseCode = marchandRecord.devise_code?.[0] || 'XOF';
-    const clientDeviseCode = clientRecord.devise_code?.[0] || 'XOF';
 
-    await this.mailService.sendDebitedEmailDepot(
-      marchandRecord.email,
-      marchandRecord.nom,
-      clientRecord.nom,
-      montant,
-      marchandDeviseCode,
-      motif
-    );
-    await this.mailService.sendCreditedEmail(
-      clientRecord.email,
-      clientRecord.nom,
-      marchandRecord.nom,
-      montant,
-      clientDeviseCode,
-      motif
-    );
 
     // Transférer les frais vers le compte de commissions
     const compteSysteme = await this.compteSystemeService.getCompteSystemeByTypeOperation('TRANSFERT');
@@ -1783,11 +1764,38 @@ async creditSolde(userId: string, montant: number) {
         destinataire_id: clientRecord.id,
         description,
         motif,
+        fraisTransfert,
         status: 'SUCCESS',
       });
     
     // Récupérer l'ID de la transaction créée
     const transactionId = transaction.id;
+
+    // Envoi des e-mails
+    const marchandDeviseCode = marchandRecord.devise_code?.[0] || 'XOF';
+    const clientDeviseCode = clientRecord.devise_code?.[0] || 'XOF';
+
+    await this.mailService.sendDebitedEmailDepot(
+      marchandRecord.email,
+      marchandRecord.nom,
+      clientRecord.nom_pays[0],
+      clientRecord.nom,
+      montant,
+      marchandDeviseCode,
+      motif,
+      fraisTransfert,
+      transactionId
+    );
+    await this.mailService.sendCreditedEmail(
+      clientRecord.email,
+      clientRecord.nom,
+      marchandRecord.nom_pays[0],
+      marchandRecord.nom,
+      montant,
+      clientDeviseCode,
+      motif,
+      transactionId
+    );
 
     // Partager les commissions
     await this.shareCommissionsDepot(type_operation, marchandRecord.pays_id, fraisTransfert, marchand_numero_compte, compteSysteme);
@@ -1826,31 +1834,6 @@ async creditSolde(userId: string, montant: number) {
     const newClient2Solde = (client2Record.solde || 0) + montant;
     await this.updateSolde(client2Record.id, newClient2Solde);
 
-  // Envoi des e-mails
-  const marchandDeviseCode = client1Record.devise_code?.[0] || 'XOF';
-  const clientDeviseCode = client2Record.devise_code?.[0] || 'XOF';
-  //const montantOp;
-
-
-  await this.mailService.sendDebitedEmail(
-    client1Record.email,
-    client1Record.nom,
-    client2Record.nom,
-    montantTotal,
-    marchandDeviseCode,
-    motif,
-    montant,
-    fraisTransfert
-    //operation_id
-  );
-  await this.mailService.sendCreditedEmail(
-    client2Record.email,
-    client2Record.nom,
-    client1Record.nom,
-    montant,
-    clientDeviseCode,
-    motif
-  );
     // Transférer les frais vers le compte de commissions
     const compteSysteme = await this.compteSystemeService.getCompteSystemeByTypeOperation('TRANSFERT');
     await this.compteSystemeService.crediterCompteSysteme(compteSysteme.id, fraisTransfert);
@@ -1872,6 +1855,34 @@ async creditSolde(userId: string, montant: number) {
     });
     // Récupérer l'ID de la transaction créée
     const transactionId = transaction.id;
+
+      // Envoi des e-mails
+  const marchandDeviseCode = client1Record.devise_code?.[0] || 'XOF';
+  const clientDeviseCode = client2Record.devise_code?.[0] || 'XOF';
+  //const montantOp;
+
+
+  await this.mailService.sendDebitedEmail(
+    client1Record.email,
+    client1Record.nom,
+    client2Record.nom,
+    montantTotal,
+    marchandDeviseCode,
+    motif,
+    montant,
+    fraisTransfert,
+    transactionId
+  );
+  await this.mailService.sendCreditedEmail(
+    client2Record.email,
+    client2Record.nom,
+    client1Record.nom_pays[0],
+    client1Record.nom,
+    montant,
+    clientDeviseCode,
+    motif,
+    transactionId
+  );
 
     console.log('Opération exécutée avec succès.');
     return {transaction_id: transactionId, nouveau_solde_client1: newClient1Solde, nouveau_solde_client2: newClient2Solde };

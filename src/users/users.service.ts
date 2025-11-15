@@ -1744,8 +1744,7 @@ async creditSolde(userId: string, montant: number) {
 
     // Transférer les frais vers le compte de commissions
     const compteSysteme = await this.compteSystemeService.getCompteSystemeByTypeOperation('TRANSFERT');
-    console.log('solde compte systeme :', compteSysteme.fields.solde);
-    if(compteSysteme.fields.solde<0){throw new BadRequestException("solde compte systeme insuffisant");}
+  
     await this.compteSystemeService.crediterCompteSysteme(compteSysteme.id, fraisTransfert);
 
       // Créer la transaction
@@ -1772,10 +1771,10 @@ async creditSolde(userId: string, montant: number) {
     const marchandDeviseCode = marchandRecord.devise_code?.[0] || 'XOF';
     const clientDeviseCode = clientRecord.devise_code?.[0] || 'XOF';
 
-    await this.mailService.sendDebitedEmailDepotInter(
+    /*await this.mailService.sendDebitedEmailDepotInter(
       marchandRecord.email,
       marchandRecord.nom,
-      clientRecord.pays_nom[0],
+      clientRecord.pays_nom,
       clientRecord.nom,
       montant,
       marchandDeviseCode,
@@ -1787,14 +1786,14 @@ async creditSolde(userId: string, montant: number) {
     await this.mailService.sendCreditedEmailDepotInter(
       clientRecord.email,
       clientRecord.nom,
-      marchandRecord.pays_nom[0],
+      marchandRecord.pays_nom,
       marchandRecord.nom,
       montant,
       clientDeviseCode,
       motif,
       fraisTransfert,
       transactionId
-    );
+    );*/
 
       console.log('Opération exécutée avec succès.');
       return {transaction_id: transactionId, nouveau_solde_marchand: newMarchandSolde, nouveau_solde_client: newClientSolde };

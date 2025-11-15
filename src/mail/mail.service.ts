@@ -94,7 +94,7 @@ export class MailService {
     }
   }
 
-async sendDebitedEmail(debiteurEmail: string, debiteurNom: string, crediteurNom: string, montant: number, devise: string, motif: string, montantOp: number, frais: number, transactionId: string): Promise<void> {
+async sendDebitedEmail(debiteurEmail: string, debiteurNom: string, crediteurNom: string, montant: number, devise: string, motif: string, montantOp: number, frais: number): Promise<void> {
   const subject = 'Débit de compte';
   const body = `
     Bonjour ${debiteurNom},
@@ -104,8 +104,7 @@ async sendDebitedEmail(debiteurEmail: string, debiteurNom: string, crediteurNom:
     - Destinataire : ${crediteurNom}
     - Montant de l'opération : ${montantOp} ${devise}
     - Motif : ${motif}
-    - Frais : ${frais} ${devise}
-    - TxnID : ${transactionId}
+    - Frais : ${frais}
     
 
     Merci d'avoir utilisé notre service.
@@ -130,7 +129,29 @@ async sendDebitCompensation(debiteurEmail: string, debiteurNom: string, crediteu
   await this.sendTransactionEmail(debiteurEmail, subject, body);
 }
 
-async sendDebitedEmailDepot(debiteurEmail: string, debiteurNom: string, pays: string, crediteurNom: string, montant: number, devise: string, motif: string, frais: number, transactionId: string): Promise<void> {
+async sendDebitedEmailDepot(debiteurEmail: string, debiteurNom: string, crediteurNom: string, montant: number, devise: string, motif: string): Promise<void> {
+  const subject = 'Debit de compte';
+  const body = `
+  <div style="font-family:'Segoe UI', Tahoma, sans-serif; background-color:#f9f9f9; padding:20px;">
+    <div style="background:#fff; padding:30px; border-radius:8px; max-width:600px; margin:auto; box-shadow:0 4px 10px rgba(0,0,0,0.08);">    
+      <h2>Bonjour ${debiteurNom || ''}</h2>
+      <p>Votre compte a été débité de ${montant} ${devise}.</p>
+      <p>Détails de la transaction :</p>
+      <ul>
+       <li> Destinataire : ${crediteurNom}</li>
+       <li> Motif : ${motif}</li>
+
+      </ul>
+      <p style="margin-top: 20px; font-size: 12px; color: #777;"><b>Merci d'avoir utilisé notre service.</b></p>
+    </div>
+
+  </div>
+  `;
+
+  await this.sendTransactionEmail(debiteurEmail, subject, body);
+}
+
+async sendDebitedEmailDepotInter(debiteurEmail: string, debiteurNom: string, pays: string, crediteurNom: string, montant: number, devise: string, motif: string, frais: number, transactionId: string): Promise<void> {
   const subject = 'OwooTrans';
   const body = `
   <div style="font-family:'Segoe UI', Tahoma, sans-serif; background-color:#f9f9f9; padding:20px;">
@@ -154,6 +175,29 @@ async sendDebitedEmailDepot(debiteurEmail: string, debiteurNom: string, pays: st
   await this.sendTransactionEmail(debiteurEmail, subject, body);
 }
 
+async sendCreditedEmailDepotInter(crediteurEmail: string, crediteurNom: string, pays: string, debiteurNom: string, montant: number, devise: string, motif: string, frais: number, transactionId: string): Promise<void> {
+  const subject = 'OwooTrans';
+  const body = `
+    
+  <div style="font-family:'Segoe UI', Tahoma, sans-serif; background-color:#f9f9f9; padding:20px;">
+    <div style="background:#fff; padding:30px; border-radius:8px; max-width:600px; margin:auto; box-shadow:0 4px 10px rgba(0,0,0,0.08);">    
+      <h2>Bonjour ${crediteurNom || ''}</h2>
+      <p>Votre compte a été crédité de ${montant} ${devise}.</p>
+      <p>Détails de la transaction :</p>
+      <ul>
+       <li> Expéditeur : ${debiteurNom}</li>
+       <li> TxnID : ${pays}</li>
+       <li> Motif : ${motif}</li>
+       <li> TxnID : ${transactionId} ${devise}</li>
+      </ul>
+      <p style="margin-top: 20px; font-size: 12px; color: #777;"><b>Merci d'avoir utilisé notre service.</b></p>
+    </div>
+
+  </div>
+  `;
+  await this.sendTransactionEmail(crediteurEmail, subject, body);
+}
+
 async sendDebitedEmailAgripay(debiteurEmail: string, debiteurNom: string, montant: number, devise: string, motif: string, orderId: string): Promise<void> {
   const subject = 'AGRICONNECT-PAYMENT';
   const body = `
@@ -170,8 +214,8 @@ async sendDebitedEmailAgripay(debiteurEmail: string, debiteurNom: string, montan
   await this.sendTransactionEmail(debiteurEmail, subject, body);
 }
 
-async sendCreditedEmail(crediteurEmail: string, crediteurNom: string, pays: string, debiteurNom: string, montant: number, devise: string, motif: string, transactionId: string): Promise<void> {
-  const subject = 'OwooTrans';
+async sendCreditedEmail(crediteurEmail: string, crediteurNom: string, debiteurNom: string, montant: number, devise: string, motif: string): Promise<void> {
+  const subject = 'Compte créditeur';
   const body = `
     
   <div style="font-family:'Segoe UI', Tahoma, sans-serif; background-color:#f9f9f9; padding:20px;">
@@ -181,9 +225,7 @@ async sendCreditedEmail(crediteurEmail: string, crediteurNom: string, pays: stri
       <p>Détails de la transaction :</p>
       <ul>
        <li> Expéditeur : ${debiteurNom}</li>
-       <li> TxnID : ${pays}</li>
        <li> Motif : ${motif}</li>
-       <li> TxnID : ${transactionId} ${devise}</li>
       </ul>
       <p style="margin-top: 20px; font-size: 12px; color: #777;"><b>Merci d'avoir utilisé notre service.</b></p>
     </div>

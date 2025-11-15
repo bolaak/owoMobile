@@ -1771,10 +1771,10 @@ async creditSolde(userId: string, montant: number) {
     const marchandDeviseCode = marchandRecord.devise_code?.[0] || 'XOF';
     const clientDeviseCode = clientRecord.devise_code?.[0] || 'XOF';
 
-    /*await this.mailService.sendDebitedEmailDepotInter(
+    await this.mailService.sendDebitedEmailDepotInter(
       marchandRecord.email,
       marchandRecord.nom,
-      clientRecord.pays_nom,
+      clientRecord.nom_pays,
       clientRecord.nom,
       montant,
       marchandDeviseCode,
@@ -1786,14 +1786,14 @@ async creditSolde(userId: string, montant: number) {
     await this.mailService.sendCreditedEmailDepotInter(
       clientRecord.email,
       clientRecord.nom,
-      marchandRecord.pays_nom,
+      marchandRecord.nom_pays,
       marchandRecord.nom,
       montant,
       clientDeviseCode,
       motif,
       fraisTransfert,
       transactionId
-    );*/
+    );
 
       console.log('Opération exécutée avec succès.');
       return {transaction_id: transactionId, nouveau_solde_marchand: newMarchandSolde, nouveau_solde_client: newClientSolde };

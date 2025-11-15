@@ -59,8 +59,8 @@ export class MailService {
       from: `"owoPay" <${Config.SMTP_USER}>`,
       to,
       subject,
-      text: body,
-      //html,
+      html: body,
+      //,
     };
 
     try {

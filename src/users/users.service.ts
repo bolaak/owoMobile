@@ -1645,7 +1645,7 @@ async creditSolde(userId: string, montant: number) {
 
 
     // Transférer les frais vers le compte de commissions
-    const compteSysteme = await this.compteSystemeService.getCompteSystemeByTypeOperation('DEPOT_INTER');
+    const compteSysteme = await this.compteSystemeService.getCompteSystemeByTypeOperation('TRANSFERT');
     await this.compteSystemeService.crediterCompteSysteme(compteSysteme.id, fraisTransfert);
 
       // Créer la transaction

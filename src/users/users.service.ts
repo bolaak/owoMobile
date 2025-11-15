@@ -1112,11 +1112,6 @@ async shareCommissionsDepotInter(typeOperation: string, paysId: string, montantF
     const adminRecord = await this.getAdminAccount();
     console.log(`les données de ADMIN trouvées : ${adminRecord}`);
 
-    // Récupérer le compte du GOUVERNEMENT
-    const taxeRecord = await this.getTaxeAccount();
-    console.log(`les données du GOUVERNEMENT trouvées : ${taxeRecord}`);
-
-
     // Récupérer le Marchand
     const marchandRecord = await this.getUserByNumeroCompte(marchandNumeroCompte);
     console.log(`les données du Marchand trouvées : ${marchandRecord}`);
@@ -1132,6 +1127,8 @@ async shareCommissionsDepotInter(typeOperation: string, paysId: string, montantF
 
     // Partager les commissions entre les acteurs
     for (const commission of commissions) {
+      console.log('solde compte systeme :', compteSysteme.fields.solde);
+      if(compteSysteme.fields.solde<=0){throw new BadRequestException("solde compte systeme insuffisant");}
       const typeUtilisateur = commission.fields.typeUtilisateur;
       const pourcentage = commission.fields.pourcentage;
       const part = (montantFrais * pourcentage) / 100;
@@ -1194,7 +1191,6 @@ async shareCommissionsDepotInter(typeOperation: string, paysId: string, montantF
         // Débiter le compte système
         /*const nouveauSoldeCompteSysteme = (compteSysteme.fields.solde || 0) - montantFrais;
         await this.compteSystemeService.updateSoldeSysteme(compteSysteme.fields.id, nouveauSoldeCompteSysteme);*/
-
 
   } catch (error) {
     console.error(`Erreur lors du partage des commissions : ${error.message}`);
@@ -1748,8 +1744,8 @@ async creditSolde(userId: string, montant: number) {
 
     // Transférer les frais vers le compte de commissions
     const compteSysteme = await this.compteSystemeService.getCompteSystemeByTypeOperation('TRANSFERT');
-    console.log('solde compte systeme :', compteSysteme.solde);
-    if(compteSysteme.solde<=0){throw new BadRequestException("solde compte systeme insuffisant");}
+    console.log('solde compte systeme :', compteSysteme.fields.solde);
+    if(compteSysteme.fields.solde<=0){throw new BadRequestException("solde compte systeme insuffisant");}
     await this.compteSystemeService.crediterCompteSysteme(compteSysteme.id, fraisTransfert);
 
       // Créer la transaction
@@ -1768,7 +1764,7 @@ async creditSolde(userId: string, montant: number) {
       });
 
     // Partager les commissions
-    await this.shareCommissionsDepotInter(type_operation, marchandRecord.pays_id, montant, marchand_numero_compte, compteSysteme);
+    await this.shareCommissionsDepotInter(type_operation, marchandRecord.pays_id, fraisTransfert, marchand_numero_compte, compteSysteme);
     // Récupérer l'ID de la transaction créée
     const transactionId = transaction.id;
     

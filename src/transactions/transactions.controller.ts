@@ -1017,5 +1017,132 @@ async regenerateOTP(@Body() otpData: { operationId: string }) {
     throw error;
   }
 }
+
+ //endpoint permettant à un Master, Business, ADMIN d'effectuer auprès de l'administration. 
+@Post('compensationCadre')
+ @UseGuards(AdminGuard)
+ async retraitCadre(@Body() approvisionnementData: { cadre_numero_compte: string; admin_numero_compte: string; montant: number; pin: string }) {
+   const { cadre_numero_compte, admin_numero_compte, montant, pin } = approvisionnementData;
+ 
+   try {
+     console.log('Données reçues :', approvisionnementData);
+
+      // Vérifier que les comptes à débiter et à créditer sont différents
+      await this.usersService.validateDifferentAccounts(cadre_numero_compte, admin_numero_compte);
+
+     // Récupérer les enregistrements du cadre et du admin
+     console.log('Récupération des données du admin...');
+     const adminRecord = await this.usersService.getUserByNumeroCompte(admin_numero_compte);
+     console.log('admin trouvé :', adminRecord);
+ 
+     console.log('Récupération des données du cadre...');
+     const cadreRecord = await this.usersService.getUserByNumeroCompte(cadre_numero_compte);
+     console.log('cadre trouvé :', cadreRecord);
+
+     // Vérifier que l'admin est de type "admin"
+     console.log('Vérification du type utilisateur (admin)...');
+     await this.usersService.validateUserType(adminRecord.id, 'ADMIN');
+ 
+     // Vérifier que le cadre est de type "cadre"
+     console.log('Vérification du type utilisateur (cadre)...');
+     await this.usersService.validateUserTypeForCompensation(cadreRecord.id, ['ADMIN', 'MASTER', 'BUSINESS']);
+
+
+     // Vérifier que le pays du cadre est "Activated"
+     console.log('Vérification du statut du pays du cadre...');
+     await this.usersService.checkCountryStatusForUser(cadreRecord.id);
+
+     // Vérifier que le statut du cadre est "Activated"
+     console.log('Vérification du statut du cadre...');
+     await this.usersService.checkUserStatus(cadre_numero_compte);
+
+    // Calculer les frais de transfert
+    if(cadreRecord.type_utilisateur=="BUSINESS")
+      {
+        const montantTotal = (montant * 0.075) + montant;
+      // Vérifier que le solde du cadre est suffisant
+      console.log('Vérification du solde du cadre...');
+      await this.usersService.validateSolde(cadreRecord.id, montantTotal);
+  
+      // Vérifier le code PIN du cadre
+      console.log('Vérification du code PIN du cadre...');
+      await this.usersService.validatePIN(cadre_numero_compte, pin);
+
+      // Générer un code OTP pour valider l'opération
+      console.log('Génération du code OTP...');
+      return this.usersService.generateOTP(cadreRecord.id, adminRecord.id, montant);
+      
+      }
+      else{
+     // Vérifier que le solde du cadre est suffisant
+     console.log('Vérification du solde du cadre...');
+     await this.usersService.validateSolde(cadreRecord.id, montant);
+ 
+     // Vérifier le code PIN du cadre
+     console.log('Vérification du code PIN du cadre...');
+     await this.usersService.validatePIN(cadre_numero_compte, pin);
+
+      // Générer un code OTP pour valider l'opération
+      console.log('Génération du code OTP...');
+      return this.usersService.generateOTP(cadreRecord.id, adminRecord.id, montant);
+      }
+
+    //return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.' };
+   } catch (error) {
+     console.error('Erreur interceptée :', error.message);
+     throw error;
+   }
+}
+
+ // enpoint pour valider l'opération de compensation d'un Master, Business, ADMIN. 
+@Post('valider-compensationCadre')
+  @UseGuards(AdminGuard)
+  async validerRetraitCadre(@Body() validationData: { admin_numero_compte: string; cadre_numero_compte: string; montant: number; motif: string; otpCode: string }) {
+    const { admin_numero_compte, cadre_numero_compte, montant, motif, otpCode } = validationData;
+
+  try {
+    console.log('Données reçues pour la validation :', validationData);
+
+    // Récupérer l'utilisateur Admin 
+    console.log('Récupération des données du Admin ...');
+    const adminRecord = await this.usersService.getUserByNumeroCompte(admin_numero_compte);
+
+    // Vérifier que le statut du admin est "Activated"
+    console.log('Vérification du statut du admin...');
+    await this.usersService.checkUserStatus(admin_numero_compte);
+
+    // Récupérer l'utilisateur Cadre
+    console.log('Récupération des données du cadre...');
+    const cadreRecord = await this.usersService.getUserByNumeroCompte(cadre_numero_compte);
+    console.log('cadre trouvé :', cadreRecord);
+
+    // Vérifier que le statut du cadre est "Activated"
+    console.log('Vérification du statut du cadre...');
+    await this.usersService.checkUserStatus(cadre_numero_compte);
+
+     // Vérifier que le solde du cadre est suffisant
+     console.log('Vérification du solde du cadre...');
+     await this.usersService.validateSolde(cadreRecord.id, montant);
+
+    // Valider le code OTP
+    console.log('Validation du code OTP...');
+    await this.usersService.validateOTP(cadreRecord.id, adminRecord.id, otpCode, montant);
+
+      console.log('Exécution de l\'opération...');
+      const resultat = await this.usersService.executerCompensationCadre(
+        cadre_numero_compte,
+        admin_numero_compte,
+        montant,
+        motif
+      );
+
+    //return { message: 'Validation réussie. L\'opération peut être exécutée.' };
+    return { message: 'Opération exécutée avec succès.', ...resultat };
+
+  } catch (error) {
+    console.error('Erreur lors de la validation ou de l\'exécution de l\'opération :', error.message);
+    throw error;
+  }
+}
 }
  

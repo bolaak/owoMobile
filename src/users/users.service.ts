@@ -365,6 +365,7 @@ async validateUserType(userId: string, userType: string): Promise<void> {
     throw error;
   }
 }
+
 async validateUserTypeForCompensation(userId: string, allowedTypes: string[] | string): Promise<void> {
   try {
     const typesArray = Array.isArray(allowedTypes) ? allowedTypes : [allowedTypes];
@@ -1433,7 +1434,8 @@ async creditSolde(userId: string, montant: number) {
     // Envoyer le code OTP par e-mail
     const user = await this.getUserById(userId);
     const email = user.email;
-    await this.mailService.sendOTPEmail(email, otpCode, operationId);
+    const userName = user.name;
+    await this.mailService.sendOTPEmail(userName, email, otpCode, operationId);
 
     console.log(`Code OTP généré pour l'utilisateur ID : ${userId}, Opération ID : ${operationId}, Code : ${otpCode}`);
     return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.', operationId};
@@ -1467,7 +1469,8 @@ async creditSolde(userId: string, montant: number) {
     // Envoyer le code OTP par e-mail
     const user = await this.getUserById(userId);
     const email = user.email;
-    await this.mailService.sendOTPEmail(email, otpCode, operationId);
+        const userName = user.name;
+    await this.mailService.sendOTPEmail(userName, email, otpCode, operationId);
 
     console.log(`Code OTP généré pour l'utilisateur ID : ${userId}, Opération ID : ${operationId}`);
     return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.', operationId};
@@ -1498,7 +1501,8 @@ async creditSolde(userId: string, montant: number) {
     // Envoyer le code OTP par e-mail
     const user = await this.getUserById(userId);
     const email = user.email;
-    await this.mailService.sendOTPEmail(email, otpCode, operationId);
+        const userName = user.name;
+    await this.mailService.sendOTPEmail(userName, email, otpCode, operationId);
 
     console.log(`Code OTP généré pour l'utilisateur ID : ${userId}, Opération ID : ${operationId}, Code : ${otpCode}`);
     return { message: 'Un code OTP a été envoyé à votre adresse e-mail. Veuillez le saisir pour valider l\'opération.', operationId};
@@ -1570,7 +1574,8 @@ async creditSolde(userId: string, montant: number) {
       const userId = otpRecord.fields.user_id;
       const userRecord = await this.getUserById(userId);
       const email = userRecord.email;
-      await this.mailService.sendOTPEmail(email, otpCode, operationId);
+      const userName = userRecord.name;
+      await this.mailService.sendOTPEmail(userName, email, otpCode, operationId);
 
       console.log(`Nouveau code OTP généré pour l'opération ID : ${operationId}, Code : ${otpCode}`);
       return {operationId };
@@ -1604,16 +1609,16 @@ async creditSolde(userId: string, montant: number) {
     const marchandDeviseCode = marchandRecord.devise_code?.[0] || 'XOF';
     await this.mailService.sendDebitedEmailDepot(
       masterRecord.email,
-      masterRecord.nom,
-      marchandRecord.nom,
+      masterRecord.name,
+      marchandRecord.name,
       montant,
       masterDeviseCode,
       motif
     );
     await this.mailService.sendCreditedEmail(
       marchandRecord.email,
-      marchandRecord.nom,
-      masterRecord.nom,
+      marchandRecord.name,
+      masterRecord.name,
       montant,
       marchandDeviseCode,
       motif
@@ -1671,16 +1676,16 @@ async creditSolde(userId: string, montant: number) {
 
     await this.mailService.sendDebitedEmailDepot(
       marchandRecord.email,
-      marchandRecord.nom,
-      clientRecord.nom,
+      marchandRecord.name,
+      clientRecord.name,
       montant,
       marchandDeviseCode,
       motif
     );
     await this.mailService.sendCreditedEmail(
       clientRecord.email,
-      clientRecord.nom,
-      marchandRecord.nom,
+      clientRecord.name,
+      marchandRecord.name,
       montant,
       clientDeviseCode,
       motif
@@ -1773,9 +1778,9 @@ async creditSolde(userId: string, montant: number) {
 
     await this.mailService.sendDebitedEmailDepotInter(
       marchandRecord.email,
-      marchandRecord.nom,
+      marchandRecord.name,
       clientRecord.nom_pays,
-      clientRecord.nom,
+      clientRecord.name,
       montant,
       marchandDeviseCode,
       motif,
@@ -1785,9 +1790,9 @@ async creditSolde(userId: string, montant: number) {
 
     await this.mailService.sendCreditedEmailDepotInter(
       clientRecord.email,
-      clientRecord.nom,
+      clientRecord.name,
       marchandRecord.nom_pays,
-      marchandRecord.nom,
+      marchandRecord.name,
       montant,
       clientDeviseCode,
       motif,
@@ -1858,8 +1863,8 @@ async creditSolde(userId: string, montant: number) {
 
   await this.mailService.sendDebitedEmail(
     client1Record.email,
-    client1Record.nom,
-    client2Record.nom,
+    client1Record.name,
+    client2Record.name,
     montantTotal,
     marchandDeviseCode,
     motif,
@@ -1870,8 +1875,8 @@ async creditSolde(userId: string, montant: number) {
 
   await this.mailService.sendCreditedEmail(
     client2Record.email,
-    client2Record.nom,
-    client1Record.nom,
+    client2Record.name,
+    client1Record.name,
     montant,
     clientDeviseCode,
     motif,
@@ -1922,8 +1927,8 @@ async creditSolde(userId: string, montant: number) {
 
   await this.mailService.sendDebitedEmail(
     clientRecord.email,
-    clientRecord.nom,
-    marchandRecord.nom,
+    clientRecord.name,
+    marchandRecord.name,
     montantTotal,
     clientDeviseCode,
     motif,
@@ -1933,8 +1938,8 @@ async creditSolde(userId: string, montant: number) {
 
   await this.mailService.sendCreditedEmail(
     marchandRecord.email,
-    marchandRecord.nom,
-    clientRecord.nom,
+    marchandRecord.name,
+    clientRecord.name,
     montant,
     marchandDeviseCode,
     motif
@@ -1980,11 +1985,6 @@ async creditSolde(userId: string, montant: number) {
     const masterRecord = await this.getUserByNumeroCompte(master_numero_compte);
     const marchandRecord = await this.getUserByNumeroCompte(marchand_numero_compte);
 
-      // Calculer les frais de transfert
-      /*const type_operation = 'COMPENSATION';
-      const fraisTransfert = await this.grilleTarifaireService.getFraisOperation(masterRecord.pays_id, type_operation, montant); // Récupérer les frais
-      const montantTotal = montant + fraisTransfert;*/
-
     // Débiter le solde du master
     console.log('Débit du solde du Marchand...');
     const newMarchandSolde = (marchandRecord.solde || 0) - montant;
@@ -1995,9 +1995,6 @@ async creditSolde(userId: string, montant: number) {
     const newMasterSolde = (masterRecord.solde || 0) + montant;
     await this.updateSolde(masterRecord.id, newMasterSolde);
 
-    // Transférer les frais vers le compte de commissions
-    /*const compteSysteme = await this.compteSystemeService.getCompteSystemeByTypeOperation('RETRAIT');
-    await this.compteSystemeService.crediterCompteSysteme(compteSysteme.id, fraisTransfert);*/
 
   // Envoi des e-mails
   const marchandDeviseCode = marchandRecord.devise_code?.[0] || 'XOF';
@@ -2005,25 +2002,6 @@ async creditSolde(userId: string, montant: number) {
   //const montantOp;
 
 
-  await this.mailService.sendDebitCompensation(
-    marchandRecord.email,
-    marchandRecord.nom,
-    masterRecord.nom,
-    montant,
-    marchandDeviseCode,
-    motif,
-    montant,
-    //fraisTransfert
-  );
-
-  await this.mailService.sendCreditedEmail(
-    marchandRecord.email,
-    marchandRecord.nom,
-    masterRecord.nom,
-    montant,
-    masterDeviseCode,
-    motif
-  );
 
     // Créer la transaction
     console.log('Création de la transaction...');
@@ -2041,13 +2019,105 @@ async creditSolde(userId: string, montant: number) {
       status: 'SUCCESS',
     });
 
-    // Partager les commissions
-    /*await this.shareCommissions(type_operation, masterRecord.pays_id, fraisTransfert, marchand_numero_compte, compteSysteme);
-    // Récupérer l'ID de la transaction créée*/
     const transactionId = transaction.id;
 
+    const fraisTransfert = 0;
+    await this.mailService.sendDebitCompensation(
+      marchandRecord.email,
+      marchandRecord.name,
+      masterRecord.name,
+      montant,
+      marchandDeviseCode,
+      motif,
+      montant,
+      fraisTransfert,
+      transactionId
+    );
+
+    await this.mailService.sendCreditedEmail(
+      marchandRecord.email,
+      marchandRecord.name,
+      masterRecord.name,
+      montant,
+      masterDeviseCode,
+      motif
+    );
     console.log('Opération exécutée avec succès.');
     return {transaction_id: transactionId, nouveau_solde_master: newMasterSolde, nouveau_solde_marchand: newMarchandSolde};
+  } catch (error) {
+    console.error('Erreur lors de l\'exécution de l\'opération :', error.message);
+    throw error;
+  }
+}
+
+//méthode pour exécuter l'opération de compensation Marchand une fois que le code OTP est validé.
+ async executerCompensationCadre(cadre_numero_compte: string, admin_numero_compte: string, montant: number, motif: string) {
+  try {
+    console.log('Début de l\'exécution de l\'opération...');
+
+    // Récupérer les enregistrements du Marchand et du master
+    const adminRecord = await this.getUserByNumeroCompte(admin_numero_compte);
+    const cadreRecord = await this.getUserByNumeroCompte(cadre_numero_compte);
+
+    const fraisTransfert = montant * 0.075;
+
+    const montantTotal = cadreRecord.type_utilisateur === "BUSINESS"
+      ? fraisTransfert + montant
+      : montant;
+
+    const fraisTotal = cadreRecord.type_utilisateur === "BUSINESS"
+      ? fraisTransfert
+      : 0;
+
+    // Débiter le solde du cadre
+    console.log('Débit du solde du Marchand...');
+    const newCadreSolde = (cadreRecord.solde || 0) - montantTotal;
+    await this.updateSolde(cadreRecord.id, newCadreSolde);
+  
+   
+    // Transférer les frais vers le compte de commissions
+    if(cadreRecord.type_utilisateur === "BUSINESS"){
+      const compteSysteme = await this.compteSystemeService.getCompteSystemeByTypeOperation('RETRAIT');
+      await this.compteSystemeService.crediterCompteSysteme(compteSysteme.id, fraisTransfert);
+    }
+
+  const montantOp = cadreRecord.type_utilisateur === "BUSINESS" 
+  ? (montantTotal - fraisTransfert) 
+  : montant;
+  // Envoi des e-mails
+  const cadreDeviseCode = cadreRecord.devise_code?.[0] || 'XOF';
+
+    // Créer la transaction
+    console.log('Création de la transaction...');
+    const deviseCode = cadreRecord.devise_code?.[0] || 'XOF'; 
+    const description = `Compensation à partir du compte d'opérations en faveur de ${cadreRecord.name}(${cadre_numero_compte}) de ${montant} ${deviseCode}.`;
+    const transaction = await this.transactionsService.createTransactionAppro({
+      type_operation: 'COMPENSATION',
+      montant,
+      //expediteur_id: adminRecord.id,
+      destinataire_id: cadreRecord.id,
+      description,
+      motif,
+      frais : fraisTotal,
+      status: 'SUCCESS',
+    });
+
+    const transactionId = transaction.id;
+
+    await this.mailService.sendDebitCompensationCadre(
+    cadreRecord.email,
+    cadreRecord.name,
+    adminRecord.name,
+    montantTotal,
+    cadreDeviseCode,
+    motif,
+    montantOp,
+    fraisTotal,
+    transactionId
+  );
+
+    console.log('Opération exécutée avec succès.');
+    return {transaction_id: transactionId, nouveau_solde_acteur: newCadreSolde};
   } catch (error) {
     console.error('Erreur lors de l\'exécution de l\'opération :', error.message);
     throw error;
@@ -2182,16 +2252,16 @@ async exchangeBalance(
 
     await this.mailService.sendDebitedEmailDepot(
       clientRecord.email,
-      clientRecord.nom,
-      marchandRecord.nom,
+      clientRecord.name,
+      marchandRecord.name,
       montant,
       clientDeviseCode,
       motif
     );
     await this.mailService.sendCreditedEmail(
       marchandRecord.email,
-      marchandRecord.nom,
-      clientRecord.nom,
+      marchandRecord.name,
+      clientRecord.name,
       montant,
       marchandDeviseCode,
       motif
@@ -2241,7 +2311,7 @@ async debitBusinessAccount(businessNumeroCompte: string, amount: number, orderId
 
       await this.mailService.sendDebitedEmailAgripay(
       businessRecord.email,
-      businessRecord.nom,
+      businessRecord.name,
       amount,
       marchandDeviseCode,
       motif,
@@ -2319,7 +2389,7 @@ async creditClientAccounts(orderId: string, motif: string, clientAccounts: { num
 
       await this.mailService.sendCreditedEmailAgripay(
         clientRecord.email,
-        clientRecord.nom,
+        clientRecord.name,
         client.montant,
         devise,
         motif,
@@ -2366,16 +2436,16 @@ async creditClientAccounts(orderId: string, motif: string, clientAccounts: { num
 
     await this.mailService.sendDebitedEmailDepot(
       clientRecord.email,
-      clientRecord.nom,
-      marchandRecord.nom,
+      clientRecord.name,
+      marchandRecord.name,
       montant,
       clientDeviseCode,
       motif
     );
     await this.mailService.sendCreditedEmail(
       marchandRecord.email,
-      marchandRecord.nom,
-      clientRecord.nom,
+      marchandRecord.name,
+      clientRecord.name,
       montant,
       marchandDeviseCode,
       motif

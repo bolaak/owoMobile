@@ -146,7 +146,7 @@ async sendOTPEmail(userName: string, email: string, otpCode: string, operationId
 }
 
 
-async sendDebitedEmail(debiteurEmail: string, debiteurNom: string, crediteurNom: string, montant: number, devise: string, motif: string, montantOp: number, frais: number): Promise<void> {
+/*async sendDebitedEmail(debiteurEmail: string, debiteurNom: string, crediteurNom: string, montant: number, devise: string, motif: string, montantOp: number, frais: number): Promise<void> {
   const subject = 'Débit de compte';
   const body = `
   <div style="font-family:'Segoe UI', Tahoma, sans-serif; background-color:#f9f9f9; padding:20px;">
@@ -169,9 +169,121 @@ async sendDebitedEmail(debiteurEmail: string, debiteurNom: string, crediteurNom:
   </div>
   `;
   await this.sendTransactionEmail(debiteurEmail, subject, body);
+}*/
+async sendDebitedEmail(
+  debiteurEmail: string,
+  debiteurNom: string,
+  crediteurNom: string,
+  montant: number,
+  devise: string,
+  motif: string,
+  montantOp: number,
+  frais: number
+): Promise<void> {
+  const subject = 'OWOO AFRIKA – Débit de compte';
+  
+  const body = `
+  <div style="font-family:'Segoe UI', Tahoma, sans-serif; background-color:#f3f4f6; padding:20px;">
+    <div style="background:#ffffff; padding:30px; border-radius:10px; max-width:650px; margin:auto; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+
+      <h2 style="color:#111827; font-size:22px; margin-bottom:10px;">
+        Bonjour ${debiteurNom || ''} 👋
+      </h2>
+
+      <p style="color:#374151; font-size:15px;">
+        Votre compte a été <strong>débité</strong> de 
+        <strong>${montant} ${devise}</strong>.
+      </p>
+
+      <h3 style="margin-top:25px; font-size:18px; color:#111827;">
+        📄 Détails de la transaction :
+      </h3>
+
+      <ul style="font-size:15px; color:#374151; line-height:1.7; padding-left:15px;">
+        <li><strong>Destinataire :</strong> ${crediteurNom}</li>
+        <li><strong>Montant de l'opération :</strong> ${montantOp} ${devise}</li>
+        <li><strong>Motif :</strong> ${motif}</li>
+        <li><strong>Frais :</strong> ${frais} ${devise}</li>
+      </ul>
+
+      <p style="text-align:center; font-size:13px; color: #777; margin-top:10px;">
+        © OWOO AFRIKA – Sécurité & Confiance 🔒
+      </p>
+
+    </div>
+  </div>
+  `;
+
+  await this.sendTransactionEmail(debiteurEmail, subject, body);
 }
 
-async sendDebitCompensation(debiteurEmail: string, debiteurNom: string, crediteurNom: string, montant: number, devise: string, motif: string, montantOp: number, frais: number, transactionId: string): Promise<void> {
+/*async sendCreditedEmail(crediteurEmail: string, crediteurNom: string, debiteurNom: string, montant: number, devise: string, motif: string): Promise<void> {
+  const subject = 'Compte créditeur';
+  const body = `
+    
+  <div style="font-family:'Segoe UI', Tahoma, sans-serif; background-color:#f9f9f9; padding:20px;">
+    <div style="background:#fff; padding:30px; border-radius:8px; max-width:600px; margin:auto; box-shadow:0 4px 10px rgba(0,0,0,0.08);">    
+      <h2>Bonjour ${crediteurNom || ''}</h2>
+      <p>Votre compte a été crédité de ${montant} ${devise}.</p>
+      <p>Détails de la transaction :</p>
+      <ul>
+       <li> Expéditeur : ${debiteurNom}</li>
+       <li> Motif : ${motif}</li>
+      </ul>
+      <p style="margin-top: 20px; text-align:center; font-size:13px; color: #777;">
+        © OWOO AFRIKA – Sécurité & Confiance 🔒
+      </p>
+    </div>
+
+  </div>
+  `;
+  await this.sendTransactionEmail(crediteurEmail, subject, body);
+}*/
+async sendCreditedEmail(
+  crediteurEmail: string,
+  crediteurNom: string,
+  debiteurNom: string,
+  montant: number,
+  devise: string,
+  motif: string
+): Promise<void> {
+
+  const subject = 'OWOO AFRIKA – Compte crédité';
+
+  const body = `
+  <div style="font-family:'Segoe UI', Tahoma, sans-serif; background-color:#f3f4f6; padding:20px;">
+    <div style="background:#ffffff; padding:30px; border-radius:10px; max-width:650px; margin:auto; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+
+      <h2 style="color:#111827; font-size:22px; margin-bottom:10px;">
+        Bonjour ${crediteurNom || ''} 🎉
+      </h2>
+
+      <p style="color:#374151; font-size:15px;">
+        Votre compte a été <strong>crédité</strong> de 
+        <strong>${montant} ${devise}</strong>. 💰
+      </p>
+
+      <h3 style="margin-top:25px; font-size:18px; color:#111827;">
+        📄 Détails de la transaction :
+      </h3>
+
+      <ul style="font-size:15px; color:#374151; line-height:1.7; padding-left:15px;">
+        <li><strong>Expéditeur :</strong> ${debiteurNom}</li>
+        <li><strong>Motif :</strong> ${motif}</li>
+      </ul>
+
+      <p style="text-align:center; font-size:13px; color: #777; margin-top:10px;">
+        © OWOO AFRIKA – Sécurité & Confiance 🔒
+      </p>
+
+    </div>
+  </div>
+  `;
+
+  await this.sendTransactionEmail(crediteurEmail, subject, body);
+}
+
+/*async sendDebitCompensation(debiteurEmail: string, debiteurNom: string, crediteurNom: string, montant: number, devise: string, motif: string, montantOp: number, frais: number, transactionId: string): Promise<void> {
   const subject = 'Notification de débit de compte';
   const body = `
   <div style="font-family:'Segoe UI', Tahoma, sans-serif; background-color:#f9f9f9; padding:20px;">
@@ -192,6 +304,83 @@ async sendDebitCompensation(debiteurEmail: string, debiteurNom: string, crediteu
 
   </div>
   `;
+  await this.sendTransactionEmail(debiteurEmail, subject, body);
+}*/
+async sendDebitCompensation(
+  debiteurEmail: string,
+  debiteurNom: string,
+  crediteurNom: string,
+  montant: number,
+  devise: string,
+  motif: string,
+  montantOp: number,
+  frais: number,
+  transactionId: string
+): Promise<void> {
+
+  const subject = '💳 Débit de compte – OWOO AFRIKA';
+
+  const body = `
+  <div style="font-family: Arial, sans-serif; background:#f4f4f7; padding:20px;">
+    <div style="max-width:600px; margin:auto; background:white; border-radius:12px; padding:30px; box-shadow:0 5px 15px rgba(0,0,0,0.08);">
+
+      <!-- HEADER -->
+      <h2 style="text-align:center; color:#2d3748; margin-bottom:10px;">
+        💳 Débit de votre compte
+      </h2>
+
+      <!-- Message principal -->
+      <p style="font-size:16px; color:#2d3748;">
+        Bonjour <strong>${debiteurNom || ''}</strong> 👋,
+      </p>
+
+      <p style="font-size:15px; color:#4a5568; line-height:1.6;">
+        Votre compte a été débité de :  
+        <strong style="font-size:17px; color:#1a202c;">${montant} ${devise}</strong>.
+      </p>
+
+      <p style="font-size:15px; color:#4a5568; line-height:1.6; margin-top:15px;">
+        Voici les détails de cette opération :
+      </p>
+
+      <!-- Transaction card -->
+      <div style="
+        margin:20px 0; 
+        padding:20px; 
+        background:#edf2f7; 
+        border-radius:10px; 
+        border:1px solid #e2e8f0;
+      ">
+        <p style="margin:8px 0; font-size:15px; color:#2d3748;">
+          👤 <strong>Destinataire :</strong> ${crediteurNom}
+        </p>
+
+        <p style="margin:8px 0; font-size:15px; color:#2d3748;">
+          📝 <strong>Motif :</strong> ${motif}
+        </p>
+
+        <p style="margin:8px 0; font-size:15px; color:#2d3748;">
+          💸 <strong>Frais :</strong> ${frais} ${devise}
+        </p>
+
+        <p style="margin:8px 0; font-size:15px; color:#2d3748;">
+          🔗 <strong>ID Transaction :</strong> ${transactionId}
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <p style="font-size:14px; color:#718096; text-align:center; margin-top:25px;">
+        Si vous n'êtes pas à l'origine de cette opération, veuillez contacter le support immédiatement.
+      </p>
+
+      <p style="text-align:center; font-size:13px; color: #777; margin-top:10px;">
+        © OWOO AFRIKA – Sécurité & Confiance 🔒
+      </p>
+
+    </div>
+  </div>
+  `;
+
   await this.sendTransactionEmail(debiteurEmail, subject, body);
 }
 
@@ -276,7 +465,7 @@ async sendDebitCompensationCadre(
 
 
 
-async sendDebitedEmailDepot(debiteurEmail: string, debiteurNom: string, crediteurNom: string, montant: number, devise: string, motif: string): Promise<void> {
+/*async sendDebitedEmailDepot(debiteurEmail: string, debiteurNom: string, crediteurNom: string, montant: number, devise: string, motif: string): Promise<void> {
   const subject = 'Debit de compte';
   const body = `
   <div style="font-family:'Segoe UI', Tahoma, sans-serif; background-color:#f9f9f9; padding:20px;">
@@ -298,9 +487,76 @@ async sendDebitedEmailDepot(debiteurEmail: string, debiteurNom: string, crediteu
   `;
 
   await this.sendTransactionEmail(debiteurEmail, subject, body);
+}*/
+async sendDebitedEmailDepot(
+  debiteurEmail: string,
+  debiteurNom: string,
+  crediteurNom: string,
+  montant: number,
+  devise: string,
+  motif: string
+): Promise<void> {
+
+  const subject = '💳 Débit de compte – OWOO AFRIKA';
+
+  const body = `
+  <div style="font-family: Arial, sans-serif; background:#f4f4f7; padding:20px;">
+    <div style="max-width:600px; margin:auto; background:white; border-radius:12px; padding:30px; box-shadow:0 5px 15px rgba(0,0,0,0.08);">
+
+      <!-- HEADER -->
+      <h2 style="text-align:center; color:#2d3748; margin-bottom:10px;">
+        💳 Débit de votre compte
+      </h2>
+
+      <!-- Message principal -->
+      <p style="font-size:16px; color:#2d3748;">
+        Bonjour <strong>${debiteurNom || ''}</strong> 👋,
+      </p>
+
+      <p style="font-size:15px; color:#4a5568; line-height:1.6;">
+        Votre compte a été débité de :  
+        <strong style="font-size:17px; color:#1a202c;">${montant} ${devise}</strong>.
+      </p>
+
+      <p style="font-size:15px; color:#4a5568; line-height:1.6; margin-top:15px;">
+        Voici les détails de l’opération :
+      </p>
+
+      <!-- Transaction card -->
+      <div style="
+        margin:20px 0; 
+        padding:20px; 
+        background:#edf2f7; 
+        border-radius:10px; 
+        border:1px solid #e2e8f0;
+      ">
+        <p style="margin:8px 0; font-size:15px; color:#2d3748;">
+          👤 <strong>Destinataire :</strong> ${crediteurNom}
+        </p>
+
+        <p style="margin:8px 0; font-size:15px; color:#2d3748;">
+          📝 <strong>Motif :</strong> ${motif}
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <p style="font-size:14px; color:#718096; text-align:center; margin-top:25px;">
+        Si vous n'êtes pas à l'origine de cette opération, contactez immédiatement notre support.
+      </p>
+
+      <p style="text-align:center; font-size:13px; color: #777; margin-top:10px;">
+        © OWOO AFRIKA – Sécurité & Confiance 🔒
+      </p>
+
+    </div>
+  </div>
+  `;
+
+  await this.sendTransactionEmail(debiteurEmail, subject, body);
 }
 
-async sendDebitedEmailDepotInter(debiteurEmail: string, debiteurNom: string, pays: string, crediteurNom: string, montant: number, devise: string, motif: string, frais: number, transactionId: string): Promise<void> {
+
+/*async sendDebitedEmailDepotInter(debiteurEmail: string, debiteurNom: string, pays: string, crediteurNom: string, montant: number, devise: string, motif: string, frais: number, transactionId: string): Promise<void> {
   const subject = 'OwooTrans';
   const body = `
   <div style="font-family:'Segoe UI', Tahoma, sans-serif; background-color:#f9f9f9; padding:20px;">
@@ -324,9 +580,95 @@ async sendDebitedEmailDepotInter(debiteurEmail: string, debiteurNom: string, pay
   `;
 
   await this.sendTransactionEmail(debiteurEmail, subject, body);
+}*/
+async sendDebitedEmailDepotInter(
+  debiteurEmail: string,
+  debiteurNom: string,
+  pays: string,
+  crediteurNom: string,
+  montantOp: number,
+  montant: number,
+  devise: string,
+  motif: string,
+  frais: number,
+  transactionId: string
+): Promise<void> {
+
+  const subject = '💳 Débit international – OWOO AFRIKA';
+
+  const body = `
+  <div style="font-family: Arial, sans-serif; background:#f4f4f7; padding:20px;">
+    <div style="max-width:600px; margin:auto; background:white; border-radius:12px; padding:30px; box-shadow:0 5px 15px rgba(0,0,0,0.08);">
+
+      <!-- HEADER -->
+      <h2 style="text-align:center; color:#2d3748; margin-bottom:10px;">
+        🌍 OWOO AFRIKA – Transfert International
+      </h2>
+
+      <!-- Message principal -->
+      <p style="font-size:16px; color:#2d3748;">
+        Bonjour <strong>${debiteurNom || ''}</strong> 👋,
+      </p>
+
+      <p style="font-size:15px; color:#4a5568; line-height:1.6;">
+        Votre compte a été débité de :
+        <strong style="font-size:17px; color:#1a202c;">${montantOp} ${devise}</strong>.
+      </p>
+
+      <p style="font-size:15px; color:#4a5568; line-height:1.6; margin-top:15px;">
+        Voici les détails de l’opération internationale :
+      </p>
+
+      <!-- Transaction card -->
+      <div style="
+        margin:20px 0; 
+        padding:20px; 
+        background:#edf2f7; 
+        border-radius:10px; 
+        border:1px solid #e2e8f0;
+      ">
+        <p style="margin:8px 0; font-size:15px; color:#2d3748;">
+          👤 <strong>Destinataire :</strong> ${crediteurNom}
+        </p>
+
+        <p style="margin:8px 0; font-size:15px; color:#2d3748;">
+          🌍 <strong>Pays :</strong> ${pays}
+        </p>
+
+        <p style="margin:8px 0; font-size:15px; color:#2d3748;">
+          💰 <strong>Montant de l'opération :</strong> ${montant} ${devise}
+        </p>
+
+        <p style="margin:8px 0; font-size:15px; color:#2d3748;">
+          💸 <strong>Frais appliqués :</strong> ${frais} ${devise}
+        </p>
+        
+        <p style="margin:8px 0; font-size:15px; color:#2d3748;">
+          📝 <strong>Motif :</strong> ${motif}
+        </p>
+
+        <p style="margin:8px 0; font-size:15px; color:#2d3748;">
+          🔗 <strong>ID Transaction :</strong> ${transactionId}
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <p style="font-size:14px; color:#718096; text-align:center; margin-top:25px;">
+        Si vous n'êtes pas à l'origine de cette opération, contactez immédiatement le support OWOO AFRIKA.
+      </p>
+
+      <p style="text-align:center; font-size:13px; color: #777; margin-top:10px;">
+        © OWOO AFRIKA – Sécurité & Confiance 🔒
+      </p>
+
+    </div>
+  </div>
+  `;
+
+  await this.sendTransactionEmail(debiteurEmail, subject, body);
 }
 
-async sendCreditedEmailDepotInter(crediteurEmail: string, crediteurNom: string, pays: string, debiteurNom: string, montant: number, devise: string, motif: string, frais: number, transactionId: string): Promise<void> {
+/*async sendCreditedEmailDepotInter(crediteurEmail: string, crediteurNom: string, pays: string, debiteurNom: string, montant: number, devise: string, motif: string, frais: number, transactionId: string): Promise<void> {
   const subject = 'OwooTrans';
   const body = `
     
@@ -349,9 +691,90 @@ async sendCreditedEmailDepotInter(crediteurEmail: string, crediteurNom: string, 
   </div>
   `;
   await this.sendTransactionEmail(crediteurEmail, subject, body);
+}*/
+
+async sendCreditedEmailDepotInter(
+  crediteurEmail: string,
+  crediteurNom: string,
+  pays: string,
+  debiteurNom: string,
+  montant: number,
+  devise: string,
+  motif: string,
+  frais: number,
+  transactionId: string
+): Promise<void> {
+
+  const subject = '💰 Transfert international – OWOO AFRIKA';
+
+  const body = `
+  <div style="font-family: Arial, sans-serif; background:#f4f4f7; padding:20px;">
+    <div style="max-width:600px; margin:auto; background:white; border-radius:12px; padding:30px; box-shadow:0 5px 15px rgba(0,0,0,0.08);">
+
+      <!-- HEADER -->
+      <h2 style="text-align:center; color:#2d3748; margin-bottom:10px;">
+        💰 Crédit de votre compte
+      </h2>
+
+      <!-- Message principal -->
+      <p style="font-size:16px; color:#2d3748;">
+        Bonjour <strong>${crediteurNom || ''}</strong> 👋,
+      </p>
+
+      <p style="font-size:15px; color:#4a5568; line-height:1.6;">
+        Vous avez reçu un transfert de :
+        <strong style="font-size:17px; color:#1a202c;">${montant} ${devise}</strong>.
+      </p>
+
+      <p style="font-size:15px; color:#4a5568; line-height:1.6; margin-top:15px;">
+        Voici les détails de cette opération internationale :
+      </p>
+
+      <!-- Détails transaction -->
+      <div style="
+        margin:20px 0;
+        padding:20px;
+        background:#edf2f7;
+        border-radius:10px;
+        border:1px solid #e2e8f0;
+      ">
+
+        <p style="margin:8px 0; font-size:15px; color:#2d3748;">
+          📤 <strong>Envoyé par :</strong> ${debiteurNom}
+        </p>
+
+        <p style="margin:8px 0; font-size:15px; color:#2d3748;">
+          🌍 <strong>Pays d’origine :</strong> ${pays}
+        </p>
+
+        <p style="margin:8px 0; font-size:15px; color:#2d3748;">
+          📝 <strong>Motif :</strong> ${motif}
+        </p>
+
+        <p style="margin:8px 0; font-size:15px; color:#2d3748;">
+          🔗 <strong>ID Transaction :</strong> ${transactionId}
+        </p>
+
+      </div>
+
+      <!-- Footer -->
+      <p style="font-size:14px; color:#718096; text-align:center; margin-top:25px;">
+        Si vous n'êtes pas à l'origine de cette opération, contactez immédiatement le support OWOO AFRIKA.
+      </p>
+
+      <p style="text-align:center; font-size:13px; color: #777; margin-top:10px;">
+        © OWOO AFRIKA – Sécurité & Confiance 🔒
+      </p>
+
+    </div>
+  </div>
+  `;
+
+  await this.sendTransactionEmail(crediteurEmail, subject, body);
 }
 
-async sendDebitedEmailAgripay(debiteurEmail: string, debiteurNom: string, montant: number, devise: string, motif: string, orderId: string): Promise<void> {
+
+/*async sendDebitedEmailAgripay(debiteurEmail: string, debiteurNom: string, montant: number, devise: string, motif: string, orderId: string): Promise<void> {
   const subject = 'AGRICONNECT-PAYMENT';
   const body = `
   <div style="font-family:'Segoe UI', Tahoma, sans-serif; background-color:#f9f9f9; padding:20px;">
@@ -372,31 +795,48 @@ async sendDebitedEmailAgripay(debiteurEmail: string, debiteurNom: string, montan
 
   `;
   await this.sendTransactionEmail(debiteurEmail, subject, body);
-}
+}*/
 
-async sendCreditedEmail(crediteurEmail: string, crediteurNom: string, debiteurNom: string, montant: number, devise: string, motif: string): Promise<void> {
-  const subject = 'Compte créditeur';
+async sendDebitedEmailAgripay(
+  debiteurEmail: string,
+  debiteurNom: string,
+  montant: number,
+  devise: string,
+  motif: string,
+  orderId: string
+): Promise<void> {
+  const subject = 'AGRICONNECT – Paiement Débité';
   const body = `
-    
-  <div style="font-family:'Segoe UI', Tahoma, sans-serif; background-color:#f9f9f9; padding:20px;">
-    <div style="background:#fff; padding:30px; border-radius:8px; max-width:600px; margin:auto; box-shadow:0 4px 10px rgba(0,0,0,0.08);">    
-      <h2>Bonjour ${crediteurNom || ''}</h2>
-      <p>Votre compte a été crédité de ${montant} ${devise}.</p>
-      <p>Détails de la transaction :</p>
-      <ul>
-       <li> Expéditeur : ${debiteurNom}</li>
-       <li> Motif : ${motif}</li>
+  <div style="font-family:'Segoe UI', Tahoma, sans-serif; background-color:#f3f4f6; padding:20px;">
+    <div style="background:#ffffff; padding:30px; border-radius:10px; max-width:650px; margin:auto; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+
+      <h2 style="color:#111827; font-size:22px; margin-bottom:10px;">
+        Bonjour <strong>${debiteurNom || ''}<strong>,
+      </h2>
+
+      <p style="color:#374151; font-size:15px;">
+        Votre compte a été <strong>débité</strong> de 
+        <strong>${montant} ${devise}</strong>.
+      </p>
+
+      <h3 style="margin-top:25px; font-size:18px; color:#111827;">Détails de la transaction :</h3>
+      <ul style="font-size:15px; color:#374151; line-height:1.7;">
+        <li><strong>Commande :</strong> ${orderId}</li>
+        <li><strong>Motif :</strong> ${motif}</li>
       </ul>
-      <p style="margin-top: 20px; text-align:center; font-size:13px; color: #777;">
+
+      <p style="text-align:center; font-size:13px; color: #777; margin-top:10px;">
         © OWOO AFRIKA – Sécurité & Confiance 🔒
       </p>
-    </div>
 
+    </div>
   </div>
   `;
-  await this.sendTransactionEmail(crediteurEmail, subject, body);
+
+  await this.sendTransactionEmail(debiteurEmail, subject, body);
 }
-async sendCreditedEmailAgripay(crediteurEmail: string, crediteurNom: string, montant: number, devise: string, motif: string, orderId: string): Promise<void> {
+
+/*async sendCreditedEmailAgripay(crediteurEmail: string, crediteurNom: string, montant: number, devise: string, motif: string, orderId: string): Promise<void> {
   const subject = 'AGRICONNECT-PAYMENT';
   const body = `
   <div style="font-family:'Segoe UI', Tahoma, sans-serif; background-color:#f9f9f9; padding:20px;">
@@ -417,5 +857,44 @@ async sendCreditedEmailAgripay(crediteurEmail: string, crediteurNom: string, mon
   </div>
   `;
   await this.sendTransactionEmail(crediteurEmail, subject, body);
+}*/
+async sendCreditedEmailAgripay(
+  crediteurEmail: string,
+  crediteurNom: string,
+  montant: number,
+  devise: string,
+  motif: string,
+  orderId: string
+): Promise<void> {
+  const subject = 'AGRICONNECT – Paiement effectué';
+  const body = `
+  <div style="font-family:'Segoe UI', Tahoma, sans-serif; background-color:#f3f4f6; padding:20px;">
+    <div style="background:#ffffff; padding:30px; border-radius:10px; max-width:650px; margin:auto; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+
+      <h2 style="color:#111827; font-size:22px; margin-bottom:10px;">
+        Bonjour <strong>${crediteurNom || ''}</strong>,
+      </h2>
+
+      <p style="color:#374151; font-size:15px;">
+        Votre compte a été <strong>crédité</strong> de 
+        <strong>${montant} ${devise}</strong>.
+      </p>
+
+      <h3 style="margin-top:25px; font-size:18px; color:#111827;">Détails de la transaction :</h3>
+      <ul style="font-size:15px; color:#374151; line-height:1.7;">
+        <li><strong>Commande :</strong> ${orderId}</li>
+        <li><strong>Motif :</strong> ${motif}</li>
+      </ul>
+
+      <p style="margin-top:25px; text-align:center; font-size:13px; color:#6b7280;">
+        © OWOO AFRIKA – Sécurité & Confiance 🔒
+      </p>
+
+    </div>
+  </div>
+  `;
+
+  await this.sendTransactionEmail(crediteurEmail, subject, body);
 }
+
 }

@@ -1781,6 +1781,7 @@ async creditSolde(userId: string, montant: number) {
       marchandRecord.name,
       clientRecord.nom_pays,
       clientRecord.name,
+      montantTotal,
       montant,
       marchandDeviseCode,
       motif,

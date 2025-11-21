@@ -19,6 +19,6 @@ export class ChangePINDto {
 
   @IsString()
   @IsNotEmpty()
-  @MinLength(8) // Exemple : Mot de passe minimum 8 caractères
+  @MinLength(5) // Exemple : PIN minimum 5 caractères
   newPIN: string;
 }

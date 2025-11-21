@@ -86,7 +86,7 @@ export class UsersController {
   
     await this.usersService.changePIN(user.id, oldPIN, newPIN);
     console.log('Utilisateur récupéré dans le contrôleur :', user); // Log pour vérifier l'utilisateur
-    return { message: 'Le PIN de passe a été changé avec succès.' };
+    return { message: 'Le PIN a été changé avec succès.' };
   }
 
   @Post('unlock')

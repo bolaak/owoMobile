@@ -231,7 +231,7 @@ async getUserById(id: string) {
 
     // Supprimer les champs sensibles
     //delete userFields.mot_de_passe; 
-    delete userFields.PIN; 
+    //delete userFields.PIN; 
     //delete userFields.pays_id; 
     delete userFields.master_id;
     delete userFields.destinataire; 
@@ -589,8 +589,8 @@ async changePIN(userId: string, oldPIN: string, newPIN: string): Promise<void> {
   await this.checkCountryStatus(user.pays_id); 
 
   // Vérifier que l'ancien mot de passe est correct
-  const isOldPasswordValid = await bcrypt.compare(oldPIN, user.PIN);
-  if (!isOldPasswordValid) {
+  const isOldPINValid = await bcrypt.compare(oldPIN, user.PIN);
+  if (!isOldPINValid) {
     throw new Error('L\'ancien code PIN est incorrect.');
   }
 

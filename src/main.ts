@@ -1,4 +1,4 @@
-/*import { NestFactory } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
@@ -26,9 +26,9 @@ async function bootstrap() {
     console.log(`Server running on port ${port}`);
   });
 }
-bootstrap();*/
+bootstrap();
 
-import { NestFactory } from '@nestjs/core';
+/*import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
@@ -75,4 +75,4 @@ async function bootstrap() {
   });
 }
 
-bootstrap();
+bootstrap();*/

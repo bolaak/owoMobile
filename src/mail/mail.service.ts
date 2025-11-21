@@ -38,7 +38,7 @@ export class MailService {
 
   async sendMail(to: string, subject: string, text: string, html?: string) {
     const mailOptions = {
-      from: `"OwoMobile" <${Config.SMTP_USER}>`,
+      from: `"OWOO AFRIKA" <${Config.SMTP_USER}>`,
       to,
       subject,
       text,
@@ -56,7 +56,7 @@ export class MailService {
 
   async sendTransactionEmail(to: string, subject: string, body: string): Promise<void> {
     const mailOptions = {
-      from: `"owoPay" <${Config.SMTP_USER}>`,
+      from: `"OwooPay" <${Config.SMTP_USER}>`,
       to,
       subject,
       html: body,
@@ -66,6 +66,80 @@ export class MailService {
     try {
       await this.transporter.sendMail(mailOptions);
       console.log(`Email envoyé à ${to}`);
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi de l\'email :', error);
+      throw new Error('Erreur lors de l\'envoi de l\'email');
+    }
+  }
+
+  async sendPINMail(email: string, name: string, numero: string, PIN: string) {
+    const htmlContent = `
+<div style="font-family: Arial, sans-serif; background:#f4f4f7; padding:20px;">
+  <div style="max-width:600px; margin:auto; background:white; border-radius:12px; padding:30px; box-shadow:0 5px 15px rgba(0,0,0,0.08);">
+
+    <!-- HEADER -->
+    <h2 style="text-align:center; color:#2d3748; margin-bottom:10px;">
+      🔐 Mise à jour de votre code PIN
+    </h2>
+    <p style="text-align:center; color:#4a5568; font-size:15px; margin-top:0;">
+      OWOO AFRIKA – Sécurité de votre compte
+    </p>
+
+    <!-- MESSAGE -->
+    <p style="font-size:16px; color:#2d3748;">
+      Bonjour ${name}👋,
+    </p>
+
+    <p style="font-size:15px; color:#4a5568; line-height:1.6;">
+      Votre <strong>nouveau code PIN</strong> a été généré avec succès. Veuillez le conserver dans un endroit sûr :
+    </p>
+
+    <!-- PIN BOX -->
+    <div style="text-align:center; margin:25px 0;">
+      <div style="
+        display:inline-block;
+        background:#edf2f7;
+        padding:15px 30px;
+        border-radius:10px;
+        font-size:28px;
+        letter-spacing:4px;
+        font-weight:bold;
+        color:#1a202c;
+        border:2px dashed #cbd5e0;
+      ">
+        ${PIN}
+      </div>
+    </div>
+
+    <!-- DETAILS -->
+    <p style="font-size:15px; color:#4a5568; line-height:1.6;">
+      🔒 Ce code est indispensable pour valider vos opérations sensibles.<br>
+      ⚠️ Par sécurité, ne le partagez avec personne.
+    </p>
+
+    <!-- FOOTER -->
+    <p style="font-size:14px; color:#718096; margin-top:30px; text-align:center;">
+      Si vous n'êtes pas à l'origine de cette demande, modifiez immédiatement votre PIN.
+    </p>
+
+    <p style="text-align:center; font-size:13px; color: #777;">
+      © OWOO AFRIKA – Sécurité & Confiance
+    </p>
+
+  </div>
+</div>
+
+  `;
+    const mailOptions = {
+      from: `"OWOO AFRIKA" <${Config.SMTP_USER}>`,
+      to: email,
+      subject: '🔐 Code OTP - OWOO',
+      html: htmlContent,
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+      console.log(`Email envoyé à ${email}`);
     } catch (error) {
       console.error('Erreur lors de l\'envoi de l\'email :', error);
       throw new Error('Erreur lors de l\'envoi de l\'email');

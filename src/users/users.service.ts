@@ -571,10 +571,8 @@ async sendPINToUser(numero_compte: string) {
   `;
 
   try {
-    await this.mailService.sendMail(
-      user.email,
-      'Récupération de votre code PIN',
-      emailContent
+    await this.mailService.sendPINMail(
+      user.email, user.name, user.numero_compte, newPIN
     );
 
     // Réinitialiser les tentatives infructueuses en cas de succès

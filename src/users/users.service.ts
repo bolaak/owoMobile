@@ -562,14 +562,6 @@ async sendPINToUser(numero_compte: string) {
 
   const newPIN = await this.generateNewPIN(user.id);
 
-  const emailContent = `
-    Bonjour ${user.nom} ${user.prenom},
-    
-    Voici votre nouveau code PIN : ${newPIN}.
-    
-    Conservez ce code en sécurité. Il est nécessaire pour valider vos opérations sensibles.
-  `;
-
   try {
     await this.mailService.sendPINMail(
       user.email, user.name, user.numero_compte, newPIN
@@ -583,6 +575,33 @@ async sendPINToUser(numero_compte: string) {
     // Incrémenter les tentatives infructueuses en cas d'échec
     await this.incrementFailedAttempts(numero_compte);
     throw new Error('Erreur lors de l\'envoi du code PIN.');
+  }
+}
+
+//Changement de code PIN
+async changePIN(userId: string, oldPIN: string, newPIN: string): Promise<void> {
+  console.log('ID de l\'utilisateur reçu dans le service :', userId);
+
+  // Récupérer l'utilisateur par son ID
+  const user = await this.getUserById(userId); // Les données retournées incluent maintenant `mot_de_passe`
+
+  // Vérifiez que le statut du pays est "Activated"
+  await this.checkCountryStatus(user.pays_id); 
+
+  // Vérifier que l'ancien mot de passe est correct
+  const isOldPasswordValid = await bcrypt.compare(oldPIN, user.PIN);
+  if (!isOldPasswordValid) {
+    throw new Error('L\'ancien code PIN est incorrect.');
+  }
+
+  // Hacher le nouveau code PIN
+  const hashedNewPIN = await bcrypt.hash(newPIN, 10);
+
+  // Mettre à jour le code PIN dans Airtable
+  try {
+    await this.base('Utilisateurs').update(userId, { PIN: hashedNewPIN });
+  } catch (error) {
+    throw error; //(`Erreur lors du changement de mot de passe : ${error.message}`);
   }
 }
 

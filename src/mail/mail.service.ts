@@ -81,13 +81,10 @@ export class MailService {
     <h2 style="text-align:center; color:#2d3748; margin-bottom:10px;">
       🔐 Mise à jour de votre code PIN
     </h2>
-    <p style="text-align:center; color:#4a5568; font-size:15px; margin-top:0;">
-      OWOO AFRIKA – Sécurité de votre compte
-    </p>
 
     <!-- MESSAGE -->
     <p style="font-size:16px; color:#2d3748;">
-      Bonjour ${name}👋,
+      Bonjour <strong>${name}</strong>👋,
     </p>
 
     <p style="font-size:15px; color:#4a5568; line-height:1.6;">
@@ -119,7 +116,7 @@ export class MailService {
 
     <!-- FOOTER -->
     <p style="font-size:14px; color:#718096; margin-top:30px; text-align:center;">
-      Si vous n'êtes pas à l'origine de cette demande, modifiez immédiatement votre PIN.
+      Si vous n'êtes pas à l'origine de cette demande, modifiez immédiatement votre PIN ou contacter le support.
     </p>
 
     <p style="text-align:center; font-size:13px; color: #777;">
@@ -133,7 +130,7 @@ export class MailService {
     const mailOptions = {
       from: `"OWOO AFRIKA" <${Config.SMTP_USER}>`,
       to: email,
-      subject: '🔐 Code OTP - OWOO',
+      subject: '🔐 Code PIN - OWOO',
       html: htmlContent,
     };
 

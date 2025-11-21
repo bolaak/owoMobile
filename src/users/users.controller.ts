@@ -6,6 +6,7 @@ import { AdminGuard } from '../auth/admin.guard';
 import { AuthGuard } from '../auth/auth.guard';
 import { RecoverPasswordDto } from './dto/recover-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { ChangePINDto } from './dto/change-password.dto';
 import { User } from '../decorators/user.decorator';
 import { FileInterceptor } from '@nestjs/platform-express'; // Import correct
 import { diskStorage } from 'multer';
@@ -75,6 +76,17 @@ export class UsersController {
     }
 
     return this.usersService.sendPINToUser(numero_compte);
+  }
+  @Post('change-pin')
+  @UseGuards(AuthGuard)
+  @UsePipes(new ValidationPipe())
+  async changePIN( @User() user: any, @Body() body: ChangePINDto) {
+    console.log('Utilisateur récupéré dans le contrôleur :', user); // Log pour vérifier l'utilisateur
+    const { oldPIN, newPIN } = body;
+  
+    await this.usersService.changePIN(user.id, oldPIN, newPIN);
+    console.log('Utilisateur récupéré dans le contrôleur :', user); // Log pour vérifier l'utilisateur
+    return { message: 'Le PIN de passe a été changé avec succès.' };
   }
 
   @Post('unlock')

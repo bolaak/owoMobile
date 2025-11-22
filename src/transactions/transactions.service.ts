@@ -272,8 +272,8 @@ export class TransactionsService {
 
       let amount = 0;
       if (isDebit) {
-        amount = -transaction.montant; 
-        totalDebit += transaction.montant;
+        amount = -(transaction.montant + transaction.frais); 
+        totalDebit += (transaction.montant + transaction.frais);
       } else if (isCredit) {
         amount = transaction.montant; 
         totalCredit += transaction.montant;

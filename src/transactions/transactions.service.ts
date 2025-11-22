@@ -273,10 +273,9 @@ export class TransactionsService {
       let amount = 0;
       let frais = transaction.frais || 0;
       if (isDebit) {
-        /*amount = -transaction.montant; 
-        totalDebit += transaction.montant;*/
+        amount = -transaction.montant; 
             // Débit : montant principal + frais
-        amount = -(transaction.montant + frais);
+        //amount = -(transaction.montant + frais);
         totalDebit += (transaction.montant + frais);
       } else if (isCredit) {
         amount = transaction.montant; 
@@ -292,8 +291,7 @@ export class TransactionsService {
         description: transaction.description,
         frais: transaction.frais || 0,
         motif: transaction.motif,
-        montant: transaction.montant,
-        //montant: amount,
+        montant: amount,
         //montant: Math.abs(amount), // Montant absolu pour l'affichage
         //sens: amount < 0 ? 'débit' : 'crédit',
         balance: balance,

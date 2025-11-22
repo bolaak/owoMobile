@@ -272,11 +272,11 @@ export class TransactionsService {
 
       let amount = 0;
       if (isDebit) {
-        //amount = -(transaction.montant + transaction.frais); 
-        //totalDebit += (transaction.montant + transaction.frais);
-        const total = transaction.montant + transaction.frais;
+        amount = -transaction.montant; 
+        totalDebit += transaction.montant;
+        /*const total = transaction.montant + transaction.frais;
         amount = -total; 
-        totalDebit += total;
+        totalDebit += total;*/
       } else if (isCredit) {
         amount = transaction.montant; 
         totalCredit += transaction.montant;

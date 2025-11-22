@@ -271,12 +271,13 @@ export class TransactionsService {
       const isCredit = transaction.destinataire_id === userId || transaction.utilisateur_id === userId ;
 
       let amount = 0;
+      let frais = transaction.frais || 0;
       if (isDebit) {
-        amount = -transaction.montant; 
-        totalDebit += transaction.montant;
-        /*const total = transaction.montant + transaction.frais;
-        amount = -total; 
-        totalDebit += total;*/
+        /*amount = -transaction.montant; 
+        totalDebit += transaction.montant;*/
+            // Débit : montant principal + frais
+        amount = -(transaction.montant + frais);
+        totalDebit += (transaction.montant + frais);
       } else if (isCredit) {
         amount = transaction.montant; 
         totalCredit += transaction.montant;
@@ -291,12 +292,15 @@ export class TransactionsService {
         description: transaction.description,
         frais: transaction.frais || 0,
         motif: transaction.motif,
-        montant: amount,
+        //montant: amount,
+        montant: Math.abs(amount), // Montant absolu pour l'affichage
+        sens: amount < 0 ? 'débit' : 'crédit',
         balance: balance,
       };
     });
     // Calcul du solde final
-    const finalBalance = totalCredit - totalDebit;
+    //const finalBalance = totalCredit - totalDebit;
+    const finalBalance = balance; // Utilise le solde progressif calculé
     return {
       statement,
       totalDebit,

@@ -273,8 +273,8 @@ export class TransactionsService {
       let amount = 0;
       let frais = transaction.frais || 0;
       if (isDebit) {
-        amount = -transaction.montant; 
-            // Débit : montant principal + frais
+        amount = transaction.montant; 
+        // Débit : montant principal + frais
         //amount = -(transaction.montant + frais);
         totalDebit += (transaction.montant + frais);
       } else if (isCredit) {
@@ -282,7 +282,8 @@ export class TransactionsService {
         totalCredit += transaction.montant;
       }
 
-      balance += amount; // Mise à jour du solde progressif
+      //balance += amount;
+      balance += (isDebit ? -amount - frais : amount);
 
       return {
         id:transaction.id,
@@ -291,7 +292,7 @@ export class TransactionsService {
         description: transaction.description,
         frais: transaction.frais || 0,
         motif: transaction.motif,
-        montant: amount,
+        montant: isDebit ? - amount : amount,
         //montant: Math.abs(amount), // Montant absolu pour l'affichage
         //sens: amount < 0 ? 'débit' : 'crédit',
         balance: balance,

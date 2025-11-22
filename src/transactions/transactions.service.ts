@@ -292,7 +292,8 @@ export class TransactionsService {
         description: transaction.description,
         frais: transaction.frais || 0,
         motif: transaction.motif,
-        montant: amount,
+        montant: transaction.montant,
+        //montant: amount,
         //montant: Math.abs(amount), // Montant absolu pour l'affichage
         //sens: amount < 0 ? 'débit' : 'crédit',
         balance: balance,

@@ -292,15 +292,15 @@ export class TransactionsService {
         description: transaction.description,
         frais: transaction.frais || 0,
         motif: transaction.motif,
-        //montant: amount,
-        montant: Math.abs(amount), // Montant absolu pour l'affichage
-        sens: amount < 0 ? 'débit' : 'crédit',
+        montant: amount,
+        //montant: Math.abs(amount), // Montant absolu pour l'affichage
+        //sens: amount < 0 ? 'débit' : 'crédit',
         balance: balance,
       };
     });
     // Calcul du solde final
-    //const finalBalance = totalCredit - totalDebit;
-    const finalBalance = balance; // Utilise le solde progressif calculé
+    const finalBalance = totalCredit - totalDebit;
+    //const finalBalance = balance; // Utilise le solde progressif calculé
     return {
       statement,
       totalDebit,

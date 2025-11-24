@@ -274,8 +274,6 @@ export class TransactionsService {
       let frais = transaction.frais || 0;
       if (isDebit) {
         amount = transaction.montant; 
-        // Débit : montant principal + frais
-        //amount = -(transaction.montant + frais);
         totalDebit += (transaction.montant + frais);
       } else if (isCredit) {
         amount = transaction.montant; 

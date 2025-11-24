@@ -128,7 +128,7 @@ private readonly allowedFields = [
       ]);
 
       // Envoyez les détails de connexion par email
-      const emailContent = `
+      /*const emailContent = `
         Bonjour ${userData.nom} ${userData.prenom},
         
         Votre compte Mobile Money a été créé avec succès. Voici vos informations de connexion :
@@ -144,11 +144,59 @@ private readonly allowedFields = [
       
         Veuillez conserver ces informations en sécurité. Un code PIN vous sera demandé lors des opérations sensibles.
 
+      `;*/
+      const emailContent = `
+      <div style="font-family: Arial, sans-serif; background:#f4f4f7; padding:20px;">
+        <div style="max-width:600px; margin:auto; background:white; border-radius:12px; padding:30px; box-shadow:0 5px 15px rgba(0,0,0,0.08);">
+
+          <h2 style="text-align:center; color:#2d3748; margin-bottom:10px;">
+            🎉 Félicitations! Votre portefeuille électronique a été créé avec succès.
+          </h2>
+          <p style="text-align:center; color:#4a5568; font-size:15px; margin-top:0;">
+            OWOO AFRIKA – Bienvenue dans votre espace sécurisé
+          </p>
+
+          <p style="font-size:16px; color:#2d3748;">
+            Bonjour <strong>${userData.name}</strong> 👋,
+          </p>
+
+          <p style="font-size:15px; color:#4a5568; line-height:1.6;"> 
+            Voici vos informations de connexion :
+          </p>
+
+          <div style="background:#f7fafc; padding:20px; border-radius:10px; margin:20px 0; border:1px solid #e2e8f0;">
+            <p style="margin:0; font-size:15px; color:#2d3748; line-height:1.8;">
+              🔢 <strong>Numéro de compte :</strong> ${numero_compte}<br>
+              🔐 <strong>Code PIN :</strong> ${PIN}<br>
+              🔑 <strong>Mot de passe :</strong> ${mot_de_passe}<br>
+              ${
+                userData.type_utilisateur === 'MASTER' || userData.type_utilisateur === 'BUSINESS'
+                  ? `💼 <strong>Code marchand :</strong> ${code_marchand}<br>`
+                  : ''
+              }
+            </p>
+          </div>
+
+          <p style="font-size:15px; color:#4a5568; line-height:1.6;">
+            ⚠️ Merci de conserver ces informations en lieu sûr.<br>
+            🔒 Le code PIN vous sera demandé pour valider toute opération sensible.
+          </p>
+
+          <p style="font-size:14px; color:#718096; margin-top:30px; text-align:center;">
+            Si vous n'êtes pas à l'origine de cette création de compte, contactez immédiatement notre support.
+          </p>
+
+          <p style="text-align:center; font-size:13px; color: #777; margin-top:10px;">
+            © 💙💛 OWOO AFRIKA – Sécurité & Confiance 🔒
+          </p>          
+
+        </div>
+      </div>
       `;
 
       await this.mailService.sendMail(
         userData.email,
-        'Bienvenue sur Mobile Money - Détails de connexion',
+        '🔢 Ouverture de compte -  OWOO AFRIKA',
         emailContent
       );
     // Enregistrer un log

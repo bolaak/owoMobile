@@ -149,7 +149,8 @@ private readonly allowedFields = [
 
       await this.mailService.registerMail(
         userData.email, 
-        userData.name, 
+        userData.nom, 
+        userData.prenom, 
         numero_compte, 
         PIN, mot_de_passe, 
         userData.type_utilisateur, 

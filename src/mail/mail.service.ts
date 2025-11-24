@@ -54,6 +54,72 @@ export class MailService {
     }
   }
 
+  async registerMail(email: string , name: string, numero_compte :string , PIN :string , mot_de_passe :string, typeUser :string , code_marchand :string | null) {
+    const body = `
+    <div style="font-family: Arial, sans-serif; background:#f4f4f7; padding:20px;">
+      <div style="max-width:600px; margin:auto; background:white; border-radius:12px; padding:30px; box-shadow:0 5px 15px rgba(0,0,0,0.08);">
+
+        <h2 style="text-align:center; color:#2d3748; margin-bottom:10px;">
+          🎉 Félicitations! Votre portefeuille électronique a été créé avec succès.
+        </h2>
+        <p style="text-align:center; color:#4a5568; font-size:15px; margin-top:0;">
+          OWOO AFRIKA – Bienvenue dans votre espace sécurisé
+        </p>
+
+        <p style="font-size:16px; color:#2d3748;">
+          Bonjour <strong>${name}</strong> 👋,
+        </p>
+
+        <p style="font-size:15px; color:#4a5568; line-height:1.6;"> 
+          Voici vos informations de connexion :
+        </p>
+
+        <div style="background:#f7fafc; padding:20px; border-radius:10px; margin:20px 0; border:1px solid #e2e8f0;">
+          <p style="margin:0; font-size:15px; color:#2d3748; line-height:1.8;">
+            🔢 <strong>Numéro de compte :</strong> ${numero_compte}<br>
+            🔐 <strong>Code PIN :</strong> ${PIN}<br>
+            🔑 <strong>Mot de passe :</strong> ${mot_de_passe}<br>
+            ${
+              typeUser === 'MASTER' || typeUser === 'BUSINESS'
+                ? `💼 <strong>Code marchand :</strong> ${code_marchand}<br>`
+                : ''
+            }
+          </p>
+        </div>
+
+        <p style="font-size:15px; color:#4a5568; line-height:1.6;">
+          ⚠️ Merci de conserver ces informations en lieu sûr.<br>
+          🔒 Le code PIN vous sera demandé pour valider toute opération sensible.
+        </p>
+
+        <p style="font-size:14px; color:#718096; margin-top:30px; text-align:center;">
+          Si vous n'êtes pas à l'origine de cette création de compte, contactez immédiatement notre support.
+        </p>
+
+        <p style="text-align:center; font-size:13px; color: #777; margin-top:10px;">
+          © 💙💛 OWOO AFRIKA – Sécurité & Confiance 🔒
+        </p>          
+
+      </div>
+    </div>
+    `;
+
+    const mailOptions = {
+      from: `"OWOO AFRIKA" <${Config.SMTP_USER}>`,
+      to: email,
+      subject: '🔢 Ouverture de compte -  OWOO AFRIKA',
+      html: body,
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+      console.log(`Email envoyé à ${email}`);
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi de l\'email :', error);
+      throw new Error('Erreur lors de l\'envoi de l\'email');
+    }
+  }
+
   async sendTransactionEmail(to: string, subject: string, body: string): Promise<void> {
     const mailOptions = {
       from: `"OwooPay" <${Config.SMTP_USER}>`,
@@ -74,7 +140,7 @@ export class MailService {
 
   async sendPINMail(email: string, name: string, numero: string, PIN: string) {
     const htmlContent = `
-<div style="font-family: Arial, sans-serif; background:#f4f4f7; padding:20px;">
+  <div style="font-family: Arial, sans-serif; background:#f4f4f7; padding:20px;">
   <div style="max-width:600px; margin:auto; background:white; border-radius:12px; padding:30px; box-shadow:0 5px 15px rgba(0,0,0,0.08);">
 
     <!-- HEADER -->

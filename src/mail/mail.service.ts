@@ -55,17 +55,13 @@ export class MailService {
   }
 
   async registerMail(email: string , nom: string, prenom: string, numero_compte :string , PIN :string , mot_de_passe :string, typeUser :string , code_marchand :string | null) {
-    const body = `
+    const htmlContent = `
     <div style="font-family: Arial, sans-serif; background:#f4f4f7; padding:20px;">
       <div style="max-width:600px; margin:auto; background:white; border-radius:12px; padding:30px; box-shadow:0 5px 15px rgba(0,0,0,0.08);">
 
         <h2 style="text-align:center; color:#2d3748; margin-bottom:10px;">
-          🎉 Félicitations! Votre portefeuille électronique a été créé avec succès.
+          🎉 Félicitations 👤 ${nom} ${prenom}! Votre portefeuille électronique est prêt 💰✅
         </h2>
-
-        <p style="font-size:16px; color:#2d3748;">
-          Bonjour <strong>${nom} ${prenom}</strong> 👋,
-        </p>
 
         <p style="font-size:15px; color:#4a5568; line-height:1.6;"> 
           Voici vos informations de connexion :
@@ -94,7 +90,7 @@ export class MailService {
         </p>
 
         <p style="text-align:center; font-size:13px; color: #777; margin-top:10px;">
-          © 💙💛 OWOO AFRIKA – Sécurité & Confiance 🔒
+          © OWOO AFRIKA – Sécurité & Confiance 🔒
         </p>          
 
       </div>
@@ -104,8 +100,8 @@ export class MailService {
     const mailOptions = {
       from: `"OWOO AFRIKA" <${Config.SMTP_USER}>`,
       to: email,
-      subject: '🔢 Ouverture de compte -  OWOO AFRIKA',
-      html: body,
+      subject: '📲 Ouverture de compte -  OWOO AFRIKA',
+      html: htmlContent,
     };
 
     try {
@@ -279,31 +275,6 @@ async sendOTPEmail(userName: string, email: string, otpCode: string, operationId
   }
 }
 
-
-/*async sendDebitedEmail(debiteurEmail: string, debiteurNom: string, crediteurNom: string, montant: number, devise: string, motif: string, montantOp: number, frais: number): Promise<void> {
-  const subject = 'Débit de compte';
-  const body = `
-  <div style="font-family:'Segoe UI', Tahoma, sans-serif; background-color:#f9f9f9; padding:20px;">
-    <div style="background:#fff; padding:30px; border-radius:8px; max-width:600px; margin:auto; box-shadow:0 4px 10px rgba(0,0,0,0.08);">    
-      <h2>Bonjour ${debiteurNom || ''}</h2>
-      <p>Votre compte a été débité de ${montant} ${devise}.</p>
-      <p>Détails de la transaction :</p>
-      <ul>
-       <li> Destinataire : ${crediteurNom}</li>
-       <li>- Montant de l'opération : ${montantOp} ${devise}</li>
-       <li> Motif : ${motif}</li>
-       <li> Frais : ${frais} ${devise}</li>
-      </ul>
-
-      <p style="margin-top: 20px; text-align:center; font-size:13px; color: #777;">
-        © OWOO AFRIKA – Sécurité & Confiance 🔒
-      </p>
-    </div>
-
-  </div>
-  `;
-  await this.sendTransactionEmail(debiteurEmail, subject, body);
-}*/
 async sendDebitedEmail(
   debiteurEmail: string,
   debiteurNom: string,

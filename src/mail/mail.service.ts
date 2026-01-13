@@ -86,7 +86,7 @@ export class MailService {
         <div style="background:#f7fafc; padding:20px; border-radius:10px; margin:20px 0; border:1px solid #e2e8f0;">
           <p style="margin:0; font-size:15px; color:#2d3748; line-height:1.8;">
             🔢 <strong>Numéro :</strong> ${numero_compte}<br>
-            <!--<strong>Code PIN :</strong> ${PIN}<br>-->
+            🔐 <strong>Code PIN :</strong> ${PIN}<br>
             🔑 <strong>Mot de passe :</strong> ${mot_de_passe}<br>
             ${
               typeUser === 'MASTER' || typeUser === 'BUSINESS'
@@ -95,6 +95,15 @@ export class MailService {
             }
           </p>
         </div>
+
+        <p style="font-size:15px; color:#4a5568; line-height:1.6;">
+          ⚠️ Merci de conserver ces informations en lieu sûr.<br>
+             Le code PIN vous sera demandé pour valider toute opération sensible.
+        </p>
+
+        <p style="font-size:14px; color:#718096; margin-top:30px; text-align:center;">
+          Si vous n'êtes pas à l'origine de cette création de compte, contactez immédiatement notre support.
+        </p>
 
         <p style="text-align:center; font-size:13px; color: #777; margin-top:10px;">
           © OWOO AFRIKA – Sécurité & Confiance 🔒

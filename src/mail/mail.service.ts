@@ -60,7 +60,7 @@ export class MailService {
       <div style="max-width:600px; margin:auto; background:white; border-radius:12px; padding:30px; box-shadow:0 5px 15px rgba(0,0,0,0.08);">
 
         <h2 style="text-align:center; color:#2d3748; margin-bottom:10px;">
-          🎉 Félicitations 👤 ${nom} ${prenom}! Votre portefeuille électronique est prêt 💰✅
+          Félicitations 👤 ${nom} ${prenom}! Votre portefeuille électronique est prêt 💰
         </h2>
 
         <p style="font-size:15px; color:#4a5568; line-height:1.6;"> 
@@ -100,7 +100,7 @@ export class MailService {
     const mailOptions = {
       from: `"OWOO AFRIKA" <${Config.SMTP_USER}>`,
       to: email,
-      subject: '📲 Ouverture de compte -  OWOO AFRIKA',
+      subject: 'Ouverture de compte -  OWOO AFRIKA',
       html: htmlContent,
     };
 

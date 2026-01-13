@@ -127,26 +127,6 @@ private readonly allowedFields = [
         },
       ]);
 
-      // Envoyez les détails de connexion par email
-      /*const emailContent = `
-        Bonjour ${userData.nom} ${userData.prenom},
-        
-        Votre compte Mobile Money a été créé avec succès. Voici vos informations de connexion :
-        - Numéro de compte : ${numero_compte}
-        - Code PIN : ${PIN}
-        - Mot de passe : ${mot_de_passe}
-
-      ${
-        userData.type_utilisateur === 'MASTER' || userData.type_utilisateur === 'BUSINESS'
-          ? `- Code marchand : ${code_marchand}\n`
-          : ''
-      }
-      
-        Veuillez conserver ces informations en sécurité. Un code PIN vous sera demandé lors des opérations sensibles.
-
-      `;*/
-
-
       await this.mailService.registerMail(
         userData.email, 
         userData.nom, 

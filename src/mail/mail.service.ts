@@ -57,50 +57,56 @@ export class MailService {
   async registerMail(email: string , nom: string, prenom: string, numero_compte :string , PIN :string , mot_de_passe :string, typeUser :string , code_marchand :string | null) {
     const htmlContent = `
     <div style="font-family: Arial, sans-serif; background:#f4f4f7; padding:20px;">
-      <div style="max-width:600px; margin:auto; background:white; border-radius:12px; padding:30px; box-shadow:0 5px 15px rgba(0,0,0,0.08);">
-
-        <h2 style="text-align:center; color:#2d3748; margin-bottom:10px;">
-          Félicitations ${nom} ${prenom}! Votre portefeuille électronique est prêt
+      <div style="max-width:600px; margin:auto; background:white; border-radius:10px; padding:30px; border:1px solid #e2e8f0;">
+    
+        <h2 style="text-align:center; color:#2d3748;">
+          Ouverture de votre compte OWOO AFRIKA
         </h2>
-
-        <p style="font-size:15px; color:#4a5568; line-height:1.6;"> 
-          Voici vos informations de connexion :
+    
+        <p style="font-size:15px; color:#2d3748;">
+          Bonjour ${nom} ${prenom},
         </p>
-
-        <div style="background:#f7fafc; padding:20px; border-radius:10px; margin:20px 0; border:1px solid #e2e8f0;">
-          <p style="margin:0; font-size:15px; color:#2d3748; line-height:1.8;">
-            🔢 <strong>Numéro de compte :</strong> ${numero_compte}<br>
-            🔐 <strong>Code PIN :</strong> ${PIN}<br>
-            🔑 <strong>Mot de passe :</strong> ${mot_de_passe}<br>
+    
+        <p style="font-size:15px; color:#4a5568; line-height:1.6;">
+          Votre portefeuille électronique OWOO AFRIKA a été créé avec succès.
+        </p>
+    
+        <div style="background:#f7fafc; padding:15px; border-radius:8px; margin:20px 0;">
+          <p style="margin:0; font-size:15px; color:#2d3748;">
+            <strong>Numéro de compte :</strong> ${numero_compte}<br>
             ${
               typeUser === 'MASTER' || typeUser === 'BUSINESS'
-                ? `💼 <strong>Code marchand :</strong> ${code_marchand}<br>`
+                ? `<strong>Code marchand :</strong> ${code_marchand}<br>`
                 : ''
             }
           </p>
         </div>
-
-        <p style="font-size:15px; color:#4a5568; line-height:1.6;">
-          ⚠️ Merci de conserver ces informations en lieu sûr.<br>
-             Le code PIN vous sera demandé pour valider toute opération sensible.
+    
+        <p style="font-size:15px; color:#4a5568;">
+          Pour des raisons de sécurité, vos codes d’accès ne sont jamais envoyés par email.
+          Veuillez vous connecter à l’application pour définir ou modifier vos informations confidentielles.
         </p>
-
-        <p style="font-size:14px; color:#718096; margin-top:30px; text-align:center;">
-          Si vous n'êtes pas à l'origine de cette création de compte, contactez immédiatement notre support.
+    
+        <p style="font-size:14px; color:#718096; margin-top:25px;">
+          Si vous n’êtes pas à l’origine de cette création, contactez immédiatement notre support.
         </p>
-
-        <p style="text-align:center; font-size:13px; color: #777; margin-top:10px;">
-          © OWOO AFRIKA – Sécurité & Confiance 🔒
-        </p>          
-
+    
+        <p style="text-align:center; font-size:12px; color:#999;">
+          © OWOO AFRIKA
+        </p>
+    
       </div>
     </div>
     `;
+    
 
     const mailOptions = {
       from: `"OWOO AFRIKA" <${Config.SMTP_USER}>`,
       to: email,
       subject: 'Ouverture de compte -  OWOO AFRIKA',
+      text: `Bonjour ${nom} ${prenom},
+      Votre compte OWOO AFRIKA a été créé.
+      Connectez-vous à l’application pour finaliser votre accès en toute sécurité.`,
       html: htmlContent,
     };
 

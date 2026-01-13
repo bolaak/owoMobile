@@ -55,6 +55,22 @@ export class MailService {
   }
 
   async registerMail(email: string , nom: string, prenom: string, numero_compte :string , PIN :string , mot_de_passe :string, typeUser :string , code_marchand :string | null) {
+    
+  const textContent = `
+  Félicitations ${nom} ${prenom} ! Votre portefeuille électronique est prêt.
+
+  Voici vos informations de connexion :
+  - Numéro : ${numero_compte}
+  
+  ⚠️ Merci de conserver ces informations en lieu sûr.
+  Le code PIN vous sera demandé pour valider toute opération sensible.
+
+  Si vous n'êtes pas à l'origine de cette création de compte, 
+  contactez immédiatement notre support.
+
+  © OWOO AFRIKA – Sécurité & Confiance 🔒
+  `;
+
     const htmlContent = `
     <div style="font-family: Arial, sans-serif; background:#f4f4f7; padding:20px;">
       <div style="max-width:600px; margin:auto; background:white; border-radius:12px; padding:30px; box-shadow:0 5px 15px rgba(0,0,0,0.08);">
@@ -69,18 +85,21 @@ export class MailService {
 
         <div style="background:#f7fafc; padding:20px; border-radius:10px; margin:20px 0; border:1px solid #e2e8f0;">
           <p style="margin:0; font-size:15px; color:#2d3748; line-height:1.8;">
-             <strong>Numéro de compte :</strong> ${numero_compte}<br>
-             <strong>Code PIN :</strong> ${PIN}<br>
-             <strong>Mot de passe :</strong> ${mot_de_passe}<br>
+            🔢 <strong>Numéro :</strong> ${numero_compte}<br>
+            🔐 <strong>Code PIN :</strong> ${PIN}<br>
+            🔑 <strong>Mot de passe :</strong> ${mot_de_passe}<br>
             ${
               typeUser === 'MASTER' || typeUser === 'BUSINESS'
-                ? ` <strong>Code marchand :</strong> ${code_marchand}<br>`
+                ? `💼 <strong>Code marchand :</strong> ${code_marchand}<br>`
                 : ''
             }
           </p>
         </div>
 
-
+        <p style="font-size:15px; color:#4a5568; line-height:1.6;">
+          ⚠️ Merci de conserver ces informations en lieu sûr.<br>
+             Le code PIN vous sera demandé pour valider toute opération sensible.
+        </p>
 
         <p style="font-size:14px; color:#718096; margin-top:30px; text-align:center;">
           Si vous n'êtes pas à l'origine de cette création de compte, contactez immédiatement notre support.
@@ -98,6 +117,7 @@ export class MailService {
       from: `"OWOO AFRIKA" <${Config.SMTP_USER}>`,
       to: email,
       subject: 'Ouverture de compte -  OWOO AFRIKA',
+      text: textContent,
       html: htmlContent,
     };
 

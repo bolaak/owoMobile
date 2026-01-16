@@ -568,30 +568,6 @@ async sendDebitCompensationCadre(
 }
 
 
-
-/*async sendDebitedEmailDepot(debiteurEmail: string, debiteurNom: string, crediteurNom: string, montant: number, devise: string, motif: string): Promise<void> {
-  const subject = 'Debit de compte';
-  const body = `
-  <div style="font-family:'Segoe UI', Tahoma, sans-serif; background-color:#f9f9f9; padding:20px;">
-    <div style="background:#fff; padding:30px; border-radius:8px; max-width:600px; margin:auto; box-shadow:0 4px 10px rgba(0,0,0,0.08);">    
-      <h2>Bonjour ${debiteurNom || ''}</h2>
-      <p>Votre compte a été débité de ${montant} ${devise}.</p>
-      <p>Détails de la transaction :</p>
-      <ul>
-       <li> Destinataire : ${crediteurNom}</li>
-       <li> Motif : ${motif}</li>
-
-      </ul>
-      <p style="margin-top: 20px; text-align:center; font-size:13px; color: #777;">
-        © OWOO AFRIKA – Sécurité & Confiance 🔒
-      </p>
-    </div>
-
-  </div>
-  `;
-
-  await this.sendTransactionEmail(debiteurEmail, subject, body);
-}*/
 async sendDebitedEmailDepot(
   debiteurEmail: string,
   debiteurNom: string,

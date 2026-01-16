@@ -10,8 +10,8 @@ export const Config = {
   SMTP_PORT: parseInt(process.env.SMTP_PORT || '465', 10),
   //SMTP_USER: process.env.SMTP_USER,
   //SMTP_PASSWORD: process.env.SMTP_PASSWORD,
-  SMTP_USER:'support@sourx.com',
-  SMTP_PASSWORD:'%cT4D0AXT+!n',
+  SMTP_USER:'support@owooafrika.com',
+  SMTP_PASSWORD:'mH@_+UnOAsw7y@1',
 };
 // Logs pour vérifier les variables d'environnement
 console.log('SMTP_HOST:', Config.SMTP_HOST);

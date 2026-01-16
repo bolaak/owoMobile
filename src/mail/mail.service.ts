@@ -19,6 +19,7 @@ export class MailService {
       auth: {
         user: Config.SMTP_USER,
         pass: Config.SMTP_PASSWORD,
+        authMethod: 'PLAIN',
       },
       debug: true, // Active le mode debug
       tls: {
@@ -33,6 +34,8 @@ export class MailService {
         throw new Error('Impossible de se connecter au serveur SMTP');
       }
       console.log('Connexion SMTP réussie');
+      console.log('Pass:', Config.SMTP_PASSWORD ? '******' : 'MISSING');
+
     });
   }
 

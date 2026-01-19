@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OWOO – Wallet & Infrastructure de paiement panafricaine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#569CD6',
+            secondary: '#4EC9B0',
+            accent: '#C586C0',
+            dark: '#2D3748',
+            light: '#F7FAFC',
+            grayc: '#E2E8F0',
+            danger: '#E53E3E',
+            success: '#38A169',
+            warning: '#DD6B20',
+            info: '#3182CE'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-light text-dark">
+
+<!-- NAVBAR -->
+<header class="bg-white shadow fixed w-full z-50">
+  <div class="max-w-7xl mx-auto px-6 py-4 grid grid-cols-3 items-center">
+    <!-- LOGO -->
+    <div class="flex items-center gap-3">
+      <img src="https://app.owooafrika.com/_next/image?url=%2Fassets%2Flogo.png&w=128&q=75" class="h-10" />
+      <span class="font-bold text-xl text-primary"></span>
+    </div>
+
+    <!-- SERVER STATUS -->
+    <div class="flex justify-center">
+      <div class="flex items-center gap-3 bg-light px-4 py-2 rounded-full shadow-inner">
+        <span class="relative flex h-3 w-3">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-3 w-3 bg-success"></span>
+        </span>
+        <span class="text-sm font-semibold text-success">Serveur OWOO actif</span>
+      </div>
+    </div>
+
+    <!-- MENU -->
+    <nav class="hidden md:flex justify-end gap-6 font-medium">
+      <a href="#wallet" class="hover:text-primary">Wallet</a>
+      <a href="#business" class="hover:text-primary">Business</a>
+      <a href="#developers" class="hover:text-primary">Developers</a>
+      <a href="#dashboard" class="hover:text-primary">Dashboard</a>
+    </nav>
+  </div>
+</header>
+
+<!-- SERVER STATUS BANNER -->
+<section class="bg-dark text-white py-3">
+  <div class="max-w-7xl mx-auto px-6 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <span class="relative flex h-3 w-3">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-3 w-3 bg-success"></span>
+      </span>
+      <span class="font-medium">OWOO Backend Status</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <span class="text-success font-semibold">SERVER ONLINE</span>
+      <label class="inline-flex relative items-center cursor-pointer">
+        <input type="checkbox" checked disabled class="sr-only peer">
+        <div class="w-11 h-6 bg-success rounded-full peer"></div>
+      </label>
+    </div>
+  </div>
+</section>
+
+<!-- HERO -->
+<section class="pt-32 pb-24 bg-gradient-to-r from-primary to-secondary text-white">
+  <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+    <div>
+      <h1 class="text-5xl font-bold mb-6">Le Wallet & l’Infrastructure de paiement pour l’Afrique</h1>
+      <p class="text-lg mb-8">OWOO connecte particuliers, commerçants et entreprises à une plateforme de paiement sécurisée, inclusive et scalable.</p>
+      <div class="flex gap-4">
+        <a href="#wallet" class="bg-white text-primary px-6 py-3 rounded-xl font-semibold">Particuliers</a>
+        <a href="#business" class="border border-white px-6 py-3 rounded-xl">Entreprises</a>
+      </div>
+    </div>
+    <div class="bg-white/10 rounded-3xl p-10 text-center">
+      
+      <p class="text-xl">🌍 Paiements • APIs • Inclusion financière</p>
+    </div>
+  </div>
+</section>
+
+<!-- WALLET -->
+<section id="wallet" class="py-24">
+  <div class="max-w-7xl mx-auto px-6">
+    <h2 class="text-4xl font-bold mb-12">OWOO Wallet</h2>
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="bg-white p-8 rounded-2xl shadow">
+        <h3 class="font-semibold text-xl mb-3">💼 Portefeuille électronique</h3>
+        <p>Envoyez et recevez de l’argent instantanément sans compte bancaire.</p>
+      </div>
+      <div class="bg-white p-8 rounded-2xl shadow">
+        <h3 class="font-semibold text-xl mb-3">🔐 Sécurité & OTP</h3>
+        <p>Authentification forte, chiffrement et contrôle des transactions.</p>
+      </div>
+      <div class="bg-white p-8 rounded-2xl shadow">
+        <h3 class="font-semibold text-xl mb-3">📱 Mobile & Web</h3>
+        <p>Accessible sur smartphone, web et USSD (à venir).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BUSINESS -->
+<section id="business" class="py-24 bg-grayc">
+  <div class="max-w-7xl mx-auto px-6">
+    <h2 class="text-4xl font-bold mb-12">OWOO Business</h2>
+    <div class="grid md:grid-cols-4 gap-6">
+      <div class="bg-white p-6 rounded-xl shadow">Paiements en ligne</div>
+      <div class="bg-white p-6 rounded-xl shadow">Liens de paiement</div>
+      <div class="bg-white p-6 rounded-xl shadow">Paiements récurrents</div>
+      <div class="bg-white p-6 rounded-xl shadow">Dashboard marchand</div>
+    </div>
+  </div>
+</section>
+
+<!-- DEVELOPERS -->
+<section id="developers" class="py-24">
+  <div class="max-w-7xl mx-auto px-6">
+    <h2 class="text-4xl font-bold mb-12">OWOO Developers</h2>
+    <div class="grid md:grid-cols-2 gap-10">
+      <div>
+        <p class="mb-6">Intégrez OWOO facilement grâce à nos APIs REST sécurisées.</p>
+        <ul class="space-y-3">
+          <li>🔑 API Keys & JWT</li>
+          <li>🔁 Webhooks temps réel</li>
+          <li>🧪 Sandbox développeur</li>
+        </ul>
+      </div>
+      <pre class="bg-dark text-green-400 p-6 rounded-xl text-sm overflow-x-auto">
+POST /api/payments/initiate
+{
+  "amount": 5000,
+  "currency": "XOF",
+  "customer": "+22507000000"
+}
+      </pre>
+    </div>
+  </div>
+</section>
+
+<!-- FAKE DASHBOARD -->
+<section id="dashboard" class="py-24 bg-dark text-white">
+  <div class="max-w-7xl mx-auto px-6">
+    <h2 class="text-4xl font-bold mb-12">OWOO Business Dashboard (Demo)</h2>
+    <div class="grid md:grid-cols-4 gap-6 mb-10">
+      <div class="bg-primary p-6 rounded-xl">Transactions<br><strong>1,248</strong></div>
+      <div class="bg-secondary p-6 rounded-xl">Volume<br><strong>₦ 18.4M</strong></div>
+      <div class="bg-success p-6 rounded-xl">Succès<br><strong>96%</strong></div>
+      <div class="bg-accent p-6 rounded-xl">Clients<br><strong>312</strong></div>
+    </div>
+    <div class="bg-white text-dark rounded-xl p-6">
+      <p class="font-semibold mb-4">Dernières transactions</p>
+      <table class="w-full text-sm">
+        <tr class="border-b"><td>#TX-88421</td><td>5000 XOF</td><td class="text-success">Succès</td></tr>
+        <tr class="border-b"><td>#TX-88420</td><td>12000 XOF</td><td class="text-success">Succès</td></tr>
+        <tr><td>#TX-88419</td><td>8000 XOF</td><td class="text-warning">En attente</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<footer class="bg-black text-gray-400 text-center py-6">
+  © 2026 OWOO AFRIKA – Infrastructure de paiement panafricaine
+</footer>
+</body>
+</html>

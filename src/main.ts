@@ -1,6 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
+import { join } from 'path';
+import * as express from 'express';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 
 
@@ -18,7 +20,9 @@ async function bootstrap() {
   });
 
   // Appliquez le filtre d'exception globalement
-  app.useGlobalFilters(new AllExceptionsFilter());
+  //app.useGlobalFilters(new AllExceptionsFilter());
+    // ✅ SERVIR LES FICHIERS STATIQUES (landing OWOO)
+    app.use(express.static(join(__dirname, '..', 'public')));
 
   //await app.listen(process.env.PORT ?? 3000);
   const port = process.env.PORT || 3003;

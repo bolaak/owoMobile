@@ -57,7 +57,7 @@ export class MailService {
     }
   }
 
-  // Fonction pour envoyer un email de création de compte
+  // Fonction pour envoyer un email de création de compte === TEST LAB
     async registerMail(email: string , nom: string, prenom: string, numero_compte :string , PIN :string , mot_de_passe :string, typeUser :string , code_marchand :string | null) {
       const htmlContent = `
       <div style="font-family: Arial, sans-serif; background:#f4f4f7; padding:20px;">

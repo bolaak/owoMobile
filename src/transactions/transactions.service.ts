@@ -274,18 +274,16 @@ export class TransactionsService {
       let frais = transaction.frais || 0;
       console.log('frais dans le calculateAccountStatement :', frais);
       if (isDebit) {
-        amount = transaction.montant ; 
+        amount = transaction.montant; 
         totalDebit += (transaction.montant + frais);
-        console.log('totalDebit dans le calculateAccountStatement :', totalDebit);
       } else if (isCredit) {
         amount = transaction.montant; 
         totalCredit += transaction.montant;
       }
 
       //balance += amount;
-      balance += (isDebit ? -(amount + frais) : amount);
-      console.log('balance dans le calculateAccountStatement :', balance);
-
+      balance += (isDebit ? -amount - frais : amount);
+      console.log('le nouveau solde est : balance')
       return {
         id:transaction.id,
         date: transaction.date,

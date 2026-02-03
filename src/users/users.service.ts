@@ -1766,6 +1766,7 @@ async creditSolde(userId: string, montant: number) {
         destinataire_id: clientRecord.id,
         description,
         motif,
+        frais : fraisTransfert,
         status: 'SUCCESS',
       });
 

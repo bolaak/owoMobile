@@ -118,7 +118,7 @@ export class MailService {
     }
   async sendTransactionEmail(to: string, subject: string, body: string): Promise<void> {
     const mailOptions = {
-      from: `"OwooPay" <${Config.SMTP_USER}>`,
+      from: `"OWOO AFRIKA" <${Config.SMTP_USER}>`,
       to,
       subject,
       html: body,

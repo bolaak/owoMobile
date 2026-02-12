@@ -184,7 +184,8 @@ async checkEmailUniqueness(email: string): Promise<void> {
     .firstPage();
 
   if (records.length > 0) {
-    throw new Error('Cet email est déjà utilisé.');
+    //throw new Error('Cet email est déjà utilisé.');
+    throw new BadRequestException('Cet email est déjà utilisé.');
   }
 }
 // Existence de pays
@@ -194,7 +195,8 @@ async checkCountryExists(pays_id: string): Promise<void> {
     .firstPage();
 
   if (records.length === 0) {
-    throw new Error('Le pays spécifié est invalide.');
+    //throw new Error('Le pays spécifié est invalide.');
+    throw new BadRequestException('Le pays spécifié est invalide.');
   }
 }
 
@@ -208,7 +210,8 @@ async getUserById(id: string) {
       .firstPage();
 
     if (records.length === 0) {
-      throw new Error('Utilisateur non trouvé.');
+      //throw new Error('Utilisateur non trouvé.');
+      throw new BadRequestException('Utilisateur non trouvé.');
     }
 
     // Extraire les champs de l'utilisateur
@@ -231,7 +234,8 @@ async getUserById(id: string) {
     return userFields;
   } catch (error) {
     console.error('Erreur lors de la récupération de l\'utilisateur :', error.message);
-    throw new Error(`Erreur lors de la récupération de l'utilisateur : ${error.message}`);
+    //throw new Error(`Erreur lors de la récupération de l'utilisateur : ${error.message}`);
+    throw new BadRequestException(`Erreur lors de la récupération de l'utilisateur : ${error.message}`);
   }
 }
 
@@ -244,7 +248,8 @@ async getUserByNumeroCompte(numero_compte: string) {
 
   if (records.length === 0) {
     console.log(`Aucun utilisateur trouvé avec le numéro de compte : ${numero_compte}`);
-    throw new Error('Utilisateur non trouvé.');
+    //throw new Error('Utilisateur non trouvé.');
+    throw new BadRequestException('Utilisateur non trouvé.');
   }
 
       // Extraire les champs de l'utilisateur
@@ -268,7 +273,8 @@ async getUserByNumeroCompte(numero_compte: string) {
 // Méthode pour vérifier que deux comptes sont différents.
 async validateDifferentAccounts(numeroCompte1: string, numeroCompte2: string): Promise<void> {
   if (numeroCompte1 === numeroCompte2) {
-    throw new Error("Le compte à créditer ne peut pas être le même que le compte à débiter.");
+    //throw new Error("Le compte à créditer ne peut pas être le même que le compte à débiter.");
+    throw new BadRequestException("Le compte à créditer ne peut pas être le même que le compte à débiter.");
   }
 }
 // méthode vérifie si deux utilisateurs n'appartiennent pas au même pays en comparant leurs champs pays_id
@@ -292,13 +298,15 @@ async validateNotSameCountry(numeroCompte1: string, numeroCompte2: string): Prom
     // Vérifier si les deux comptes sont du même pays
     if (paysId1 == paysId2) {
       console.log(`Pays récupérés : paysId1 : ${paysId1}(${compte1.nom_pays}) et paysId1 :  ${paysId2}(${compte2.nom_pays}).`);
-      throw new Error("Les deux comptes sont du même pays.");
+      //throw new Error("Les deux comptes sont du même pays.");
+      throw new BadRequestException("Les deux comptes sont du même pays.");
     }
 
     console.log(`Validation réussie : Les comptes ${numeroCompte1} et ${numeroCompte2} ne sont pas du même pays.`);
   } catch (error) {
     console.error(`Erreur lors de la validation des comptes : ${error.message}`);
     throw error;
+    //throw new BadRequestException(`Erreur lors de la validation des comptes : ${error.message}`);
   }
 }
 // méthode vérifie si deux utilisateurs appartiennent au même pays en comparant leurs champs pays_id
@@ -312,7 +320,8 @@ async validateSameCountry(numeroCompte1: string, numeroCompte2: string): Promise
 
     // Vérifier si les deux comptes existent
     if (!compte1 || !compte2) {
-      throw new Error("L\'un ou les deux comptes sont introuvables.");
+      //throw new Error("L\'un ou les deux comptes sont introuvables.");
+      throw new BadRequestException("L\'un ou les deux comptes sont introuvables.");
     }
 
     // Récupérer les IDs des pays associés aux comptes
@@ -322,13 +331,15 @@ async validateSameCountry(numeroCompte1: string, numeroCompte2: string): Promise
     // Vérifier si les deux comptes sont du même pays
     if (paysId1 !== paysId2) {
       console.log(`Pays récupérés : paysId1 : ${paysId1}(${compte1.nom_pays}) et paysId1 :  ${paysId2}(${compte2.nom_pays}).`);
-      throw new Error("Les deux comptes ne sont pas du même pays.");
+      //throw new Error("Les deux comptes ne sont pas du même pays.");
+      throw new BadRequestException("Les deux comptes ne sont pas du même pays.");
     }
 
     console.log(`Validation réussie : Les comptes ${numeroCompte1} et ${numeroCompte2} sont du même pays.`);
   } catch (error) {
     console.error(`Erreur lors de la validation des comptes : ${error.message}`);
     throw error;
+    //throw new BadRequestException(`Erreur lors de la validation des comptes : ${error.message}`);
   }
 }
 //méthode pour vérifier si un utilisateur est de type Marchand ou Master et s'il est actif.
@@ -341,7 +352,8 @@ async validateUserType(userId: string, userType: string): Promise<void> {
 
     if (userRecords.length === 0) {
       console.log(`L'utilisateur avec l'ID ${userId} n'est pas de type ${userType}`);
-      throw new Error(`L'utilisateur spécifié n'est pas de type ${userType}.`);
+      //throw new Error(`L'utilisateur spécifié n'est pas de type ${userType}.`);
+      throw new BadRequestException(`L'utilisateur spécifié n'est pas de type ${userType}.`);
     }
 
     console.log(`Validation réussie pour l'utilisateur ID : ${userId}, Type : ${userType}`);
@@ -366,7 +378,8 @@ async validateUserTypeForCompensation(userId: string, allowedTypes: string[] | s
 
     if (userRecords.length === 0) {
       console.log(`Aucun utilisateur correspondant trouvé pour l'ID ${userId} avec les types spécifiés : ${typesArray.join(', ')}`);
-      throw new Error(`L'utilisateur spécifié n'a pas un type autorisé (${typesArray.join(', ')}).`);
+      //throw new Error(`L'utilisateur spécifié n'a pas un type autorisé (${typesArray.join(', ')}).`);
+      throw new BadRequestException(`L'utilisateur spécifié n'a pas un type autorisé (${typesArray.join(', ')}).`);
     }
 
     console.log(`Validation réussie pour l'utilisateur ID : ${userId}, Type valide`);
@@ -385,7 +398,8 @@ async validateSolde(userId: string, montant: number): Promise<void> {
 
     if (userRecords.length === 0) {
       console.log(`Aucun utilisateur trouvé avec l'ID : ${userId}`);
-      throw new Error('Utilisateur introuvable.');
+      //throw new Error('Utilisateur introuvable.');
+      throw new BadRequestException('Utilisateur introuvable.');
     }
 
     const solde = userRecords[0].fields.solde || 0;
@@ -393,7 +407,8 @@ async validateSolde(userId: string, montant: number): Promise<void> {
 
     if (solde < montant) {
       console.log(`Solde insuffisant pour l'utilisateur ID : ${userId}`);
-      throw new Error('Solde insuffisant pour effectuer cette opération.');
+      //throw new Error('Solde insuffisant pour effectuer cette opération.');
+      throw new BadRequestException('Solde insuffisant pour effectuer cette opération.');
     }
 
     console.log(`Validation du solde réussie pour l'utilisateur ID : ${userId}`);
@@ -412,13 +427,14 @@ async updateSolde(userId: string, newSolde: number): Promise<void> {
       .firstPage();
 
     if (userRecords.length === 0) {
-      throw new Error('Utilisateur introuvable.');
+      //throw new Error('Utilisateur introuvable.');
+      throw new BadRequestException('Utilisateur introuvable.');
     }
 
     // Mettre à jour le solde de l'utilisateur
     await this.base('Utilisateurs').update(userId, { solde: newSolde });
   } catch (error) {
-    throw new Error(`Erreur lors de la mise à jour du solde : ${error.message}`);
+    throw Error; //(`Erreur lors de la mise à jour du solde : ${error.message}`);
   }
 }
 
@@ -472,7 +488,8 @@ async updateUser(id: string, updatedData: any, files?: Express.Multer.File[]): P
             return publicUrl;
           } catch (error) {
             console.error('Erreur lors de l\'upload de l\'image :', error.message);
-            throw new Error('Impossible d\'uploader l\'image.');
+            //throw new Error('Impossible d\'uploader l\'image.');
+            throw new BadRequestException('Impossible d\'uploader l\'image.');
           }
         })
       );
@@ -498,7 +515,7 @@ async updateUser(id: string, updatedData: any, files?: Express.Multer.File[]): P
   
   return { message: 'Utilisateur mis à jour avec succès.' };
   } catch (error) {
-  throw new Error(`Erreur lors de la mise à jour de l'utilisateur : ${error.message}`);
+  throw Error; //(`Erreur lors de la mise à jour de l'utilisateur : ${error.message}`);
   }
   }
 
@@ -605,7 +622,8 @@ async checkUserStatusMaster(numero_compte: string): Promise<void> {
   const user = await this.getUserByNumeroCompte(numero_compte);
 
   if (user.status === 'Deactivated') {
-    throw new Error('Le compte Master a été bloqué.');
+    //throw new Error('Le compte Master a été bloqué.');
+    throw new BadRequestException('Le compte Master a été bloqué.');
   }
   console.log(`Statut validé avec succès pour le numéro de compte : ${numero_compte}`);
 }
@@ -614,7 +632,8 @@ async checkUserStatusMarchand(numero_compte: string): Promise<void> {
   const user = await this.getUserByNumeroCompte(numero_compte);
 
   if (user.status === 'Deactivated') {
-    throw new Error('Le compte Marchand a été bloqué.');
+    //throw new Error('Le compte Marchand a été bloqué.');
+    throw new BadRequestException('Le compte Marchand a été bloqué.');
   }
   console.log(`Statut validé avec succès pour le numéro de compte : ${numero_compte}`);
 }
@@ -629,7 +648,8 @@ async incrementFailedAttempts(numero_compte: string): Promise<void> {
   if (newAttempts >= 3) {
     // Bloquer le compte
     await this.base('Utilisateurs').update(user.id, { status: 'Deactivated', tentatives_echec: newAttempts });
-    throw new Error('Votre compte a été bloqué après 3 tentatives infructueuses.');
+    //throw new Error('Votre compte a été bloqué après 3 tentatives infructueuses.'); 
+    throw new BadRequestException('Votre compte a été bloqué après 3 tentatives infructueuses.'); 
   }
 
   // Mettre à jour le nombre de tentatives
@@ -652,11 +672,12 @@ async resetFailedAttempts(numero_compte: string): Promise<void> {
       // Vérifier que la mise à jour a réussi
       const updatedUser = await this.getUserByNumeroCompte(numero_compte);
       if (updatedUser.tentatives_echec !== 0) {
-        throw new Error('Échec de la réinitialisation des tentatives infructueuses.');
+        //throw new Error('Échec de la réinitialisation des tentatives infructueuses.');
+        throw new BadRequestException('Échec de la réinitialisation des tentatives infructueuses.');
       }
     }
     catch (error) {
-    throw new Error(`Erreur lors de la réinitialisation des tentatives infructueuses : ${error.message}`);
+    throw Error; //(`Erreur lors de la réinitialisation des tentatives infructueuses : ${error.message}`);
     }
 }
 
@@ -669,7 +690,8 @@ async unlockUser(numero_compte: string) {
   await this.checkCountryStatus(user.pays_id); 
   
   if (user.status === 'Activated') {
-    throw new Error('Le compte est déjà activé.');
+    //throw new Error('Le compte est déjà activé.');
+    throw new BadRequestException('Le compte est déjà activé.');
   }
 
   await this.base('Utilisateurs').update(user.id, { status: 'Activated', tentatives_echec: 0 });
@@ -680,7 +702,8 @@ async blockUser(numero_compte: string): Promise<void> {
   const user = await this.getUserByNumeroCompte(numero_compte);
 
   if (user.status === 'Deactivated') {
-    throw new Error('Le compte est déjà bloqué.');
+    //throw new Error('Le compte est déjà bloqué.');
+    throw new BadRequestException('Le compte est déjà bloqué.');
   }
 
   // Bloquer le compte
@@ -743,7 +766,8 @@ async changePassword(userId: string, oldPassword: string, newPassword: string): 
   // Vérifier que l'ancien mot de passe est correct
   const isOldPasswordValid = await bcrypt.compare(oldPassword, user.mot_de_passe);
   if (!isOldPasswordValid) {
-    throw new Error('L\'ancien mot de passe est incorrect.');
+    //throw new Error('L\'ancien mot de passe est incorrect.');
+    throw new BadRequestException('L\'ancien mot de passe est incorrect.');
   }
 
   // Hacher le nouveau mot de passe
@@ -778,22 +802,25 @@ async checkCountryStatusForUser(userId: string): Promise<void> {
   const user = await this.getUserById(userId);
 
   if (!user.pays_id || user.pays_id.length === 0) {
-    throw new Error('Aucun pays associé à cet utilisateur.');
+    //throw new Error('Aucun pays associé à cet utilisateur.');
+    throw new BadRequestException('Aucun pays associé à cet utilisateur.');
   }
 
   const countryId = user.pays_id[0]; // Récupérez l'ID du pays depuis le champ pays_id
   const country = await this.base('Pays')
     .find(countryId)
     .catch(() => {
-      throw new Error('Erreur lors de la récupération du pays.');
+      throw new BadRequestException('Erreur lors de la récupération du pays.');
     });
 
   if (!country || !country.fields.status) {
-    throw new Error('Le pays associé à cet utilisateur est introuvable ou n\'a pas de statut défini.');
+    //throw new Error('Le pays associé à cet utilisateur est introuvable ou n\'a pas de statut défini.');
+    throw new BadRequestException('Le pays associé à cet utilisateur est introuvable ou n\'a pas de statut défini.');
   }
 
   if (country.fields.status !== 'Activated') {
-    throw new Error('Le pays associé à votre compte n\'est pas activé.');
+    //throw new Error('Le pays associé à votre compte n\'est pas activé.');
+    throw new BadRequestException('Le pays associé à votre compte n\'est pas activé.');
   }
 }
 // Vérification du status du pays d'un utilisateur
@@ -801,22 +828,26 @@ async checkCountryStatusForClient(userId: string): Promise<void> {
   const user = await this.getUserById(userId);
 
   if (!user.pays_id || user.pays_id.length === 0) {
-    throw new Error('Aucun pays associé au client.');
+    //throw new Error('Aucun pays associé au client.');
+    throw new BadRequestException('Aucun pays associé au client.');
   }
 
   const countryId = user.pays_id[0]; // Récupérez l'ID du pays depuis le champ pays_id
   const country = await this.base('Pays')
     .find(countryId)
     .catch(() => {
-      throw new Error('Erreur lors de la récupération du pays.');
+      //throw new Error('Erreur lors de la récupération du pays.');
+      throw new BadRequestException('Erreur lors de la récupération du pays.');
     });
 
   if (!country || !country.fields.status) {
-    throw new Error('Le pays associé au client est introuvable ou n\'a pas de statut défini.');
+    //throw new Error('Le pays associé au client est introuvable ou n\'a pas de statut défini.');
+    throw new BadRequestException('Le pays associé au client est introuvable ou n\'a pas de statut défini.');
   }
 
   if (country.fields.status !== 'Activated') {
-    throw new Error('Le pays associé au compte client n\'est pas activé.');
+    //throw new Error('Le pays associé au compte client n\'est pas activé.');
+    throw new BadRequestException('Le pays associé au compte client n\'est pas activé.');
   }
 }
 // Vérification du status du pays d'un utilisateur Marchand
@@ -824,22 +855,26 @@ async checkCountryStatusForMarchand(userId: string): Promise<void> {
   const user = await this.getUserById(userId);
 
   if (!user.pays_id || user.pays_id.length === 0) {
-    throw new Error('Aucun pays associé au Marchand.');
+    //throw new Error('Aucun pays associé au Marchand.');
+    throw new BadRequestException('Aucun pays associé au Marchand.');
   }
 
   const countryId = user.pays_id[0]; // Récupérez l'ID du pays depuis le champ pays_id
   const country = await this.base('Pays')
     .find(countryId)
     .catch(() => {
-      throw new Error('Erreur lors de la récupération du pays.');
+      //throw new Error('Erreur lors de la récupération du pays.');
+      throw new BadRequestException('Erreur lors de la récupération du pays.');
     });
 
   if (!country || !country.fields.status) {
-    throw new Error('Le pays associé au Marchand est introuvable ou n\'a pas de statut défini.');
+    //throw new Error('Le pays associé au Marchand est introuvable ou n\'a pas de statut défini.');
+    throw new BadRequestException('Le pays associé au Marchand est introuvable ou n\'a pas de statut défini.');
   }
 
   if (country.fields.status !== 'Activated') {
-    throw new Error('Le pays associé au compte du Marchand n\'est pas activé.');
+    //throw new Error('Le pays associé au compte du Marchand n\'est pas activé.');
+    throw new BadRequestException('Le pays associé au compte du Marchand n\'est pas activé.');
   }
 }
 
@@ -876,14 +911,16 @@ async validateMerchantCode(merchantCode: string): Promise<any> {
     .firstPage();
 
   if (masterRecords.length === 0) {
-    throw new Error('Le code marchand est invalide.');
+    //throw new Error('Le code marchand est invalide.');
+    throw new BadRequestException('Le code marchand est invalide.');
   }
 
   const master = masterRecords[0].fields;
 
   // Vérifier que le Master est activé
   if (master.status !== 'Activated') {
-    throw new Error('Le Master associé au code marchand n\'est pas activé.');
+    //throw new Error('Le Master associé au code marchand n\'est pas activé.');
+    throw new BadRequestException('Le Master associé au code marchand n\'est pas activé.');
   }
 
   // Vérifier que le pays du Master est activé
@@ -891,7 +928,8 @@ async validateMerchantCode(merchantCode: string): Promise<any> {
   const country = await this.base('Pays').find(countryId);
 
   if (!country || country.fields.status !== 'Activated') {
-    throw new Error('Le pays du Master n\'est pas activé.');
+    //throw new Error('Le pays du Master n\'est pas activé.');
+    throw new BadRequestException('Le pays du Master n\'est pas activé.');
   }
 
   return master;
@@ -903,7 +941,8 @@ async getMarchandsByMaster(masterId: string): Promise<any[]> {
   const master = await this.getUserById(masterId);
 
   if (master.type_utilisateur !== 'MASTER') {
-    throw new Error('L\'ID fourni ne correspond pas à un utilisateur de type MASTER.');
+    //throw new Error('L\'ID fourni ne correspond pas à un utilisateur de type MASTER.'); 
+    throw new BadRequestException('L\'ID fourni ne correspond pas à un utilisateur de type MASTER.'); 
   }
 
   // Récupérer tous les Marchands associés au Master
@@ -933,7 +972,8 @@ async getMasterByMarchand(marchandId: string): Promise<any> {
     const masterId = marchandRecord.fields.master_id;
 
     if (!masterId) {
-      throw new Error("Ce Marchand n'est pas rattaché à un Master.");
+      //throw new Error("Ce Marchand n'est pas rattaché à un Master.");
+      throw new BadRequestException("Ce Marchand n'est pas rattaché à un Master.");
     }
 
     const masterRecord = await this.getUserById(masterId);
@@ -945,38 +985,6 @@ async getMasterByMarchand(marchandId: string): Promise<any> {
   }
 }
 
-/*async getMasterByMarchand(marchandId: string): Promise<any> {
-  try {
-    console.log(`Récupération du Master pour le Marchand ID : ${marchandId}`);
-    
-    // D'abord, on récupère le marchand pour obtenir son master_id
-    const marchandRecord = await this.base('Utilisateurs').find(marchandId);
-    
-    if (!marchandRecord || marchandRecord.fields.type_utilisateur !== 'MARCHAND') {
-      throw new Error('Marchand non trouvé ou type utilisateur invalide');
-    }
-
-    const masterId = marchandRecord.fields.master_id;
-    if (!masterId) {
-      throw new Error('Ce marchand n\'est associé à aucun master');
-    }
-
-    // Ensuite, on récupère le master correspondant
-    const masterRecord = await this.base('Utilisateurs').find(masterId);
-    
-    if (!masterRecord || masterRecord.fields.type_utilisateur !== 'MASTER') {
-      throw new Error('Master non trouvé ou type utilisateur invalide');
-    }
-
-    const master = { id: masterRecord.id, ...masterRecord.fields };
-    console.log(`Master trouvé pour le Marchand ID ${marchandId} :`, master);
-    return master;
-    
-  } catch (error) {
-    console.error(`Erreur lors de la récupération du Master pour le Marchand ID ${marchandId} :`, error.message);
-    throw new Error(`Erreur lors de la récupération du Master pour le Marchand ID ${marchandId} : ${error.message}`);
-  }
-}*/
 
 // Méthode pour récupérer uniquement les utilisateurs de type MASTER .
 async getAllMasters() {
@@ -997,7 +1005,8 @@ async getAllMasters() {
     return masters;
   } catch (error) {
     console.error('Erreur dans getAllMasters :', error.message);
-    throw new Error(`Erreur lors de la récupération des utilisateurs de type MASTER : ${error.message}`);
+    //throw new Error(`Erreur lors de la récupération des utilisateurs de type MASTER : ${error.message}`);
+    throw new BadRequestException(`Erreur lors de la récupération des utilisateurs de type MASTER : ${error.message}`);
   }
 }
 // méthode pour partager les commissions Retrait en tenant compte des règles métier spécifiques.
@@ -1276,7 +1285,8 @@ async getAdminAccount(): Promise<any> {
       .firstPage();
 
     if (adminRecords.length === 0) {
-      throw new Error("Aucun compte ADMIN trouvé.");
+      //throw new Error("Aucun compte ADMIN trouvé.");
+      throw new BadRequestException("Aucun compte ADMIN trouvé.");
     }
 
     console.log(`Compte ADMIN trouvé :`, adminRecords[0]);
@@ -1297,7 +1307,8 @@ async getTaxeAccount(): Promise<any> {
       .firstPage();
 
     if (taxeRecords.length === 0) {
-      throw new Error("Aucun compte TAXE trouvé.");
+      //throw new Error("Aucun compte TAXE trouvé.");
+      throw new BadRequestException("Aucun compte TAXE trouvé.");
     }
 
     console.log(`Compte TAXE trouvé :`, taxeRecords[0]);
@@ -1330,7 +1341,8 @@ async getMarchandsByMasterId(masterId: string): Promise<any[]> {
     return marchands;
   } catch (error) {
     console.error(`Erreur lors de la récupération des Marchands pour le Master ID ${masterId} :`, error.message);
-    throw new Error(`Erreur lors de la récupération des Marchands pour le Master ID ${masterId} : ${error.message}`);
+    //throw new Error(`Erreur lors de la récupération des Marchands pour le Master ID ${masterId} : ${error.message}`);
+    throw new BadRequestException(`Erreur lors de la récupération des Marchands pour le Master ID ${masterId} : ${error.message}`);
   }
 }
 //  méthode pour créditer le solde d'un utilisateur (Master).
@@ -1340,7 +1352,8 @@ async creditSolde(userId: string, montant: number) {
     .firstPage();
 
   if (userRecords.length === 0) {
-    throw new Error('Utilisateur introuvable.');
+    //throw new Error('Utilisateur introuvable.');
+    throw new BadRequestException('Utilisateur introuvable.');
   }
 
   const userRecord = userRecords[0];
@@ -1362,7 +1375,8 @@ async creditSolde(userId: string, montant: number) {
       .firstPage();
   
     if (otpRecords.length === 0) {
-      throw new Error('Données envoyées invalides ou code OTP déjà utilisé.');
+      //throw new Error('Données envoyées invalides ou code OTP déjà utilisé.');
+      throw new BadRequestException('Données envoyées invalides ou code OTP déjà utilisé.');
 
     }
   
@@ -1371,7 +1385,8 @@ async creditSolde(userId: string, montant: number) {
   
     // Vérifier si le code OTP est expiré
     if (expiresAt < new Date()) {
-      throw new Error('Code OTP expiré.');
+      //throw new Error('Code OTP expiré.');
+      throw new BadRequestException('Code OTP expiré.');
     }
   
     // Marquer le code OTP comme utilisé
@@ -1392,7 +1407,7 @@ async creditSolde(userId: string, montant: number) {
   
     if (otpRecords.length === 0) {
       //throw new Error('Code OTP invalide, déjà utilisé ou ne correspond pas à cette opération ou soit le montant est erroné ou le compte à débiter et/ou à créditer est erroné.');
-      throw new Error('Code OTP invalide ou déjà utilisé ou montant incorrect.');
+      throw new BadRequestException('Code OTP invalide ou déjà utilisé ou montant incorrect.');
 
     }
   
@@ -1401,7 +1416,8 @@ async creditSolde(userId: string, montant: number) {
   
     // Vérifier si le code OTP est expiré
     if (expiresAt < new Date()) {
-      throw new Error('Code OTP expiré.');
+      //throw new Error('Code OTP expiré.');
+      throw new BadRequestException('Code OTP expiré.');
     }
   
     // Marquer le code OTP comme utilisé
@@ -1520,7 +1536,8 @@ async creditSolde(userId: string, montant: number) {
         .firstPage();
 
       if (otpRecords.length === 0) {
-        throw new Error("Aucun enregistrement OTP trouvé pour cet ID d'opération.");
+        //throw new Error("Aucun enregistrement OTP trouvé pour cet ID d'opération.");
+        throw new BadRequestException("Aucun enregistrement OTP trouvé pour cet ID d'opération.");
       }
 
       const otpRecord = otpRecords[0];
@@ -1528,11 +1545,13 @@ async creditSolde(userId: string, montant: number) {
       const codeStatus = otpRecord.fields.used;
 
       if (codeStatus == 'true') {
-        throw new Error("Le code OTP précédent a été déjà utilisé.");
+        //throw new Error("Le code OTP précédent a été déjà utilisé.");
+        throw new BadRequestException("Le code OTP précédent a été déjà utilisé.");
       }
 
       if (codeExpired !== 'Yes') {
-        throw new Error("Le code OTP précédent n'a pas encore expiré.");
+        //throw new Error("Le code OTP précédent n'a pas encore expiré.");
+        throw new BadRequestException("Le code OTP précédent n'a pas encore expiré.");
       }
 
       console.log(`Le code OTP précédent a expiré pour l'opération ID : ${operationId}`);
@@ -1560,7 +1579,8 @@ async creditSolde(userId: string, montant: number) {
         .firstPage();
 
       if (otpRecords.length === 0) {
-        throw new Error("Aucun enregistrement OTP trouvé pour cet ID d'opération.");
+        //throw new Error("Aucun enregistrement OTP trouvé pour cet ID d'opération.");
+        throw new BadRequestException("Aucun enregistrement OTP trouvé pour cet ID d'opération.");
       }
 
       const otpRecord = otpRecords[0];

@@ -290,7 +290,8 @@ async validateNotSameCountry(numeroCompte1: string, numeroCompte2: string): Prom
 
     // Vérifier si les deux comptes existent
     if (!compte1 || !compte2) {
-      throw new Error("L\'un ou les deux comptes sont introuvables.");
+      //throw new Error("L\'un ou les deux comptes sont introuvables.");
+      throw new BadRequestException("L\'un ou les deux comptes sont introuvables.");
     }
 
     // Récupérer les IDs des pays associés aux comptes
@@ -615,7 +616,8 @@ async checkUserStatus(numero_compte: string): Promise<void> {
   const user = await this.getUserByNumeroCompte(numero_compte);
 
   if (user.status === 'Deactivated') {
-    throw new Error('Votre compte a été bloqué.');
+    //throw new Error('Votre compte a été bloqué.');
+    throw new BadRequestException('Votre compte a été bloqué.');
   }
   console.log(`Statut validé avec succès pour le numéro de compte : ${numero_compte}`);
 }

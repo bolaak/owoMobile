@@ -163,14 +163,16 @@ private readonly allowedFields = [
 
     // Vérifier si le code PIN est défini pour cet utilisateur
     if (!user.PIN) {
-      throw new Error('Code PIN non défini pour cet utilisateur');
+      //throw new Error('Code PIN non défini pour cet utilisateur');
+      throw new BadRequestException('Code PIN non défini pour cet utilisateur');
     }
       console.log(`Code PIN : ${user.PIN}`);
 
     // Comparer le code PIN saisi avec celui haché
     const isValid = await bcrypt.compare(pin, user.PIN);
     if (!isValid) {
-      throw new Error('Code PIN incorrect');
+      //throw new Error('Code PIN incorrect');
+      throw new BadRequestException('Code PIN incorrect');
     }
 
     console.log(`Code PIN validé avec succès pour le numéro de compte : ${numero_compte}`);
